@@ -1,6 +1,6 @@
 # yanoa_racing
 
-Standalone Django site for [racing.yanoa.be](https://racing.yanoa.be). It presents Noah Smeets' race calendar, results, gallery, partners, and contact details while retaining Django admin as the editorial interface.
+Standalone Django site for [racing.yanoa.be](https://racing.yanoa.be). It faithfully preserves the current public interface for Noah Smeets' race calendar, results, gallery, partners, and contact details while modernizing the runtime, database, security boundary, and deployment architecture. Django admin remains the editorial interface.
 
 ## Local development
 

@@ -22,6 +22,8 @@ def index(request):
 def calendar(request):
     events = CalendarEvent.objects.order_by("date", "location")
     year = request.GET.get("year")
+    if request.GET.get("get") == "season":
+        year = str(date.today().year)
     if year and year.isdigit():
         events = events.filter(date__year=int(year))
     return JsonResponse([{
@@ -31,8 +33,9 @@ def calendar(request):
         "championship": event.championship,
         "title": event.title,
         "type": "Endurance" if event.endurance else "Sprint",
-        "confirmed": event.confirmed,
-        "sws": event.sws,
+        "endurance": 1 if event.endurance else 0,
+        "confirmed": 1 if event.confirmed else 0,
+        "sws": 1 if event.sws else 0,
         "heats": event.heats,
         "ranking": event.ranking,
     } for event in events], safe=False)

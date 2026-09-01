@@ -24,12 +24,19 @@ class PublicSiteTests(TestCase):
         self.assertContains(response, "Genk")
         self.assertContains(response, "Test profile")
         self.assertContains(response, "photo.webp")
+        self.assertContains(response, 'id="hero"')
+        self.assertContains(response, "portfolio-container")
 
     def test_calendar_api_returns_json(self):
         response = self.client.get(reverse("www:calendar"), {"year": self.race.date.year})
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()[0]["location"], "Genk")
         self.assertEqual(response.json()[0]["type"], "Sprint")
+
+    def test_legacy_calendar_endpoint_remains_compatible(self):
+        response = self.client.get("/calendar", {"get": "season"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()[0]["endurance"], 0)
 
     def test_health_does_not_cache(self):
         response = self.client.get(reverse("www:health"))

@@ -1,170 +1,758 @@
 {% load static %}
-<!doctype html>
-<html lang="nl">
+<!DOCTYPE html>
+<html lang="en">
+
+
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Noah Smeets · Kart Racer</title>
-  <meta name="description" content="Volg kart racer Noah Smeets: kalender, resultaten, foto's en sponsoring.">
-  <link rel="icon" href="{% static 'yanoa_racing/assets/img/favicon.png' %}">
-  <link rel="apple-touch-icon" href="{% static 'yanoa_racing/assets/img/apple-touch-icon.png' %}">
-  <link rel="stylesheet" href="{% static 'yanoa_racing/assets/css/style.css' %}">
-  <script defer src="{% static 'yanoa_racing/assets/js/main.js' %}"></script>
-</head>
-<body>
-  <a class="skip-link" href="#main">Naar inhoud</a>
-  <header class="site-header">
-    <a class="brand" href="#top" aria-label="Noah Smeets, startpagina">
-      <span class="brand-mark">NS</span>
-      <span>Noah Smeets</span>
-    </a>
-    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
-      <span></span><span></span><span></span><span class="sr-only">Menu</span>
-    </button>
-    <nav id="site-nav" aria-label="Hoofdnavigatie">
-      <a href="#about">Over Noah</a>
-      <a href="#calendar">Kalender</a>
-      <a href="#gallery">Foto's</a>
-      <a href="#sponsors">Sponsors</a>
-      <a class="nav-cta" href="#contact">Contact</a>
-    </nav>
-  </header>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <main id="main">
-    <section class="hero" id="top">
-      <div class="hero-shade"></div>
-      <div class="hero-content">
-        <p class="eyebrow">Belgian kart racer</p>
-        <h1>Racing is where<br><em>focus becomes speed.</em></h1>
-        <p class="hero-copy">Noah Smeets rijdt indoor- en outdoorwedstrijden met één doel: elke ronde beter.</p>
-        <div class="hero-actions">
-          <a class="button button-primary" href="#calendar">Bekijk kalender</a>
-          <a class="button button-ghost" href="#sponsors">Word partner</a>
+  <title>Noah Smeets</title>
+  <meta content="Noah Smeets" name="description">
+  <meta content="karting, racing, Noah Smeets, Formula Karting, VD Racing Team, SWS, SODIWSERIES, De Chapper, Voltage Light and Sound, Allard Europe" name="keywords">
+
+  <!-- Favicons -->
+  <link href="{% static 'yanoa_racing/assets/img/favicon.png' %}" rel="icon">
+  <link href="{% static 'yanoa_racing/assets/img/apple-touch-icon.png' %}" rel="apple-touch-icon">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Satisfy" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="{% static 'yanoa_racing/assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'yanoa_racing/assets/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <link href="{% static 'yanoa_racing/assets/vendor/boxicons/css/boxicons.min.css' %}" rel="stylesheet">
+  <link href="{% static 'yanoa_racing/assets/vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
+  <link href="{% static 'yanoa_racing/assets/vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="{% static 'yanoa_racing/assets/css/style.css' %}" rel="stylesheet">
+
+  <!--  <link rel="stylesheet" href="{% static 'yanoa_racing/assets/css/dataTables.dataTables.css' %}" />-->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-table@1.24.0/dist/bootstrap-table.min.css">
+
+  <script src="{% static 'yanoa_racing/assets/js/jquery-3.7.1.min.js' %}"></script>
+  <!--  <script src="{% static 'yanoa_racing/assets/js/dataTables.js' %}"></script>-->
+
+</head>
+
+<body>
+
+<!-- ======= Header ======= -->
+<header id="header" class="fixed-top d-flex justify-content-center align-items-center header-transparent">
+
+  <nav id="navbar" class="navbar">
+    <ul>
+      <li><a class="nav-link scrollto active" href="#hero">Home</a></li>
+      <li><a class="nav-link scrollto" href="#about">About</a></li>
+      <!--        <li><a class="nav-link scrollto" href="#resume">Resume</a></li>-->
+      <li><a class="nav-link scrollto" href="#services">Kalender</a></li>
+      <li><a class="nav-link scrollto " href="#portfolio">Pictures</a></li>
+      <!--        <li><a class="nav-link scrollto " href="#testimonials">Sponsors</a></li>-->
+      <li><a class="nav-link scrollto " href="#sponsors">Sponsors</a></li>
+      <li><a class="nav-link scrollto " href="#pricing">Sponsoring</a></li>
+      <li><a class="nav-link scrollto" href="#contact">Contact</a></li>
+    </ul>
+    <i class="bi bi-list mobile-nav-toggle"></i>
+  </nav><!-- .navbar -->
+
+</header><!-- End Header -->
+
+<!-- ======= Hero Section ======= -->
+<section id="hero">
+  <div class="hero-container">
+    <h1>Noah Smeets</h1>
+    <h2>Kart Racer</h2>
+    <a href="#about" class="btn-scroll scrollto" title="Scroll Down"><i class="bx bx-chevron-down"></i></a>
+    <p style="color:#aaa">Volgende Race</p>
+    <div class="availability">
+      <time class="icon">
+        <strong style="">{{next.location}}</strong>
+        <span>{{next.date|date:'d'}}</span>
+        <em>{{next.date|date:'M'}}</em>
+      </time>
+    </div>
+  </div>
+</section><!-- End Hero -->
+
+<main id="main">
+
+  <!-- ======= About Me Section ======= -->
+  <section id="about" class="about">
+    <div class="container">
+
+      <div class="section-title">
+        <span>Over Mij</span>
+        <h2>About Me</h2>
+        {{website.aboutme | safe}}
+      </div>
+
+      <div class="row">
+        <div class="image col-lg-4 d-flex align-items-stretch justify-content-center justify-content-lg-start"></div>
+        <div class="col-lg-8 d-flex flex-column align-items-stretch">
+          <div class="content ps-lg-4 d-flex flex-column justify-content-center">
+            <div class="row">
+              <div class="col-lg-6">
+                <ul>
+                  <li><i class="bi bi-chevron-right"></i> <strong>Name:</strong> <span>Noah Smeets</span></li>
+                  <li><i class="bi bi-chevron-right"></i> <strong>Instagram:</strong> <span><a href="https://www.instagram.com/kartingnoah/">kartingnoah</a></span></li>
+                  <li><i class="bi bi-chevron-right"></i> <strong>City:</strong> <span>Zonhoven, BE</span></li>
+                </ul>
+              </div>
+              <div class="col-lg-6">
+                <ul>
+                  <li><i class="bi bi-chevron-right"></i> <strong>Age:</strong> <span>{{website.age}}</span></li>
+                  <li><i class="bi bi-chevron-right"></i> <strong>Weight:</strong> <span>{{website.weight}}</span></li>
+                  <li><i class="bi bi-chevron-right"></i> <strong>Height:</strong> <span>{{website.height}}</span></li>
+                </ul>
+              </div>
+            </div>
+
+
+            <!--              <div class="row mt-n4">-->
+            <!--                <div class="col-md-6 mt-5 d-md-flex align-items-md-stretch">-->
+            <!--                  <div class="count-box">-->
+            <!--                    <i class="bi bi-emoji-smile" style="color: #20b38e;"></i>-->
+            <!--                    <span data-purecounter-start="0" data-purecounter-end="232" data-purecounter-duration="1" class="purecounter"></span>-->
+            <!--                    <p><strong>Happy Clients</strong> consequuntur voluptas nostrum aliquid ipsam architecto ut.</p>-->
+            <!--                  </div>-->
+            <!--                </div>-->
+
+            <!--                <div class="col-md-6 mt-5 d-md-flex align-items-md-stretch">-->
+            <!--                  <div class="count-box">-->
+            <!--                    <i class="bi bi-journal-richtextr" style="color: #8a1ac2;"></i>-->
+            <!--                    <span data-purecounter-start="0" data-purecounter-end="521" data-purecounter-duration="1" class="purecounter"></span>-->
+            <!--                    <p><strong>Projects</strong> adipisci atque cum quia aspernatur totam laudantium et quia dere tan</p>-->
+            <!--                  </div>-->
+            <!--                </div>-->
+
+            <!--                <div class="col-md-6 mt-5 d-md-flex align-items-md-stretch">-->
+            <!--                  <div class="count-box">-->
+            <!--                    <i class="bi bi-clock" style="color: #2cbdee;"></i>-->
+            <!--                    <span data-purecounter-start="0" data-purecounter-end="18" data-purecounter-duration="1" class="purecounter"></span>-->
+            <!--                    <p><strong>Years of experience</strong> aut commodi quaerat modi aliquam nam ducimus aut voluptate non vel</p>-->
+            <!--                  </div>-->
+            <!--                </div>-->
+
+            <!--                <div class="col-md-6 mt-5 d-md-flex align-items-md-stretch">-->
+            <!--                  <div class="count-box">-->
+            <!--                    <span>2024</span>-->
+            <!--                  </div>-->
+            <!--                </div>-->
+
+            <div class="d-flex gap-5 justify-content-left align-items-center py-1">
+              <a href="https://talent-factory.nl" target="_blank">
+                <img class="me-1" height="64" src="{% static 'yanoa_racing/assets/img/logo_talent-factory.png' %}" alt="Talent Factory">
+              </a>
+              <a href="https://www.sodiwseries.com/en-gb/drivers/smeets-noah-150609.html" target="_blank">
+                <img class="me-1" height="32" style="background-color:black" src="{% static 'yanoa_racing/assets/img/logo_sws.png' %}" alt="SODIWSERIES">
+              </a>
+            </div>
+
+            <div class="col-md-6 mt-5 d-md-flex align-items-md-stretch">
+              <div class="count-box">
+                <button type="button" class="btn btn-outline-dark">2025</button>
+              </div>
+              <div class="count-box">
+                <i class="bi bi-trophy-fill" style="color: #ffd700;"></i>
+                <span data-purecounter-start="0" data-purecounter-end="7" data-purecounter-duration="1" class="purecounter"></span>
+                <p><strong>Gold</strong></p>
+              </div>
+              <div class="count-box">
+                <i class="bi bi-trophy-fill" style="color: #a5a9b4;"></i>
+                <span data-purecounter-start="0" data-purecounter-end="7" data-purecounter-duration="1" class="purecounter"></span>
+                <p><strong>Silver</strong></p>
+              </div>
+              <div class="count-box">
+                <i class="bi bi-trophy-fill" style="color: #6e4d25;"></i>
+                <span data-purecounter-start="0" data-purecounter-end="2" data-purecounter-duration="1" class="purecounter"></span>
+                <p><strong>Brons</strong></p>
+              </div>
+            </div>
+
+            <div class="col-md-6 mt-5 d-md-flex align-items-md-stretch">
+              <div class="count-box">
+                <button type="button" class="btn btn-outline-dark">2024</button>
+              </div>
+              <div class="count-box">
+                <i class="bi bi-trophy-fill" style="color: #ffd700;"></i>
+                <span data-purecounter-start="0" data-purecounter-end="8" data-purecounter-duration="1" class="purecounter"></span>
+                <p><strong>Gold</strong></p>
+              </div>
+              <div class="count-box">
+                <i class="bi bi-trophy-fill" style="color: #a5a9b4;"></i>
+                <span data-purecounter-start="0" data-purecounter-end="1" data-purecounter-duration="1" class="purecounter"></span>
+                <p><strong>Silver</strong></p>
+              </div>
+              <div class="count-box">
+                <i class="bi bi-trophy-fill" style="color: #6e4d25;"></i>
+                <span data-purecounter-start="0" data-purecounter-end="5" data-purecounter-duration="1" class="purecounter"></span>
+                <p><strong>Brons</strong></p>
+              </div>
+            </div>
+
+            <div class="col-md-6 mt-5 d-md-flex align-items-md-stretch">
+              <div class="count-box">
+                <button type="button" class="btn btn-outline-dark">2023</button>
+              </div>
+              <div class="count-box">
+                <i class="bi bi-trophy-fill" style="color: #ffd700;"></i>
+                <span data-purecounter-start="0" data-purecounter-end="1" data-purecounter-duration="1" class="purecounter"></span>
+                <p><strong>Gold</strong></p>
+              </div>
+              <div class="count-box">
+                <i class="bi bi-trophy-fill" style="color: #a5a9b4;"></i>
+                <span data-purecounter-start="0" data-purecounter-end="2" data-purecounter-duration="1" class="purecounter"></span>
+                <p><strong>Silver</strong></p>
+              </div>
+              <div class="count-box">
+                <i class="bi bi-trophy-fill" style="color: #6e4d25;"></i>
+                <span data-purecounter-start="0" data-purecounter-end="1" data-purecounter-duration="1" class="purecounter"></span>
+                <p><strong>Brons</strong></p>
+              </div>
+            </div>
+
+
+            <!--              </div>-->
+          </div><!-- End .content-->
+
+          <!--            <div class="skills-content ps-lg-4">-->
+          <!--              <div class="progress">-->
+          <!--                <span class="skill">HTML <i class="val">100%</i></span>-->
+          <!--                <div class="progress-bar-wrap">-->
+          <!--                  <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>-->
+          <!--                </div>-->
+          <!--              </div>-->
+
+          <!--              <div class="progress">-->
+          <!--                <span class="skill">CSS <i class="val">90%</i></span>-->
+          <!--                <div class="progress-bar-wrap">-->
+          <!--                  <div class="progress-bar" role="progressbar" aria-valuenow="90" aria-valuemin="0" aria-valuemax="100"></div>-->
+          <!--                </div>-->
+          <!--              </div>-->
+
+          <!--              <div class="progress">-->
+          <!--                <span class="skill">JavaScript <i class="val">75%</i></span>-->
+          <!--                <div class="progress-bar-wrap">-->
+          <!--                  <div class="progress-bar" role="progressbar" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>-->
+          <!--                </div>-->
+          <!--              </div>-->
+          <!--            </div>-->
+
         </div>
       </div>
-      {% if next %}
-      <aside class="next-race" aria-label="Volgende race">
-        <p>Volgende race</p>
-        <time datetime="{{ next.date|date:'Y-m-d' }}">
-          <strong>{{ next.date|date:"d" }}</strong>
-          <span>{{ next.date|date:"M Y" }}</span>
-        </time>
-        <div><b>{{ next.location }}</b><small>{{ next.championship }} · {{ next.country }}</small></div>
-      </aside>
-      {% endif %}
-      <a class="scroll-cue" href="#about" aria-label="Scroll naar Over Noah">↓</a>
-    </section>
 
-    <section class="section about" id="about">
-      <div class="section-heading">
-        <p class="eyebrow">De racer</p>
-        <h2>Talent groeit<br>ronde per ronde.</h2>
+    </div>
+  </section><!-- End About Me Section -->
+
+  <!-- ======= Testimonials Section ======= -->
+  <!--    <section id="testimonials" class="testimonials">-->
+  <section id="sponsors" class="testimonials">
+    <div class="section-title">
+      <!--        <span>Sponsors</span>-->
+      <h2 style="color: white">Sponsors</h2>
+    </div>
+
+    <div class="container position-relative">
+
+      <div class="testimonials-slider swiper" data-aos="fade-up" data-aos-delay="100">
+        <div class="swiper-wrapper">
+
+          <div class="swiper-slide">
+            <div class="testimonial-item">
+              <a href="https://yanoa.be" target="_blank">
+                <img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/yanoa_be-white.webp' %}" class="testimonial-img2" style="background-color: rgba(255, 255, 255, 0.0)" alt="YANOA.BE">
+              </a>
+              <p>
+                <i class="bx bxs-quote-alt-left quote-icon-left"></i>
+                YaNoa.be Engineering - Your partner in creating and maintaining engineering projects ...
+                <i class="bx bxs-quote-alt-right quote-icon-right"></i>
+              </p>
+            </div>
+          </div><!-- End testimonial item -->
+
+          <div class="swiper-slide">
+            <div class="testimonial-item">
+              <a href="https://dechapper.be" target="_blank">
+                <img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/dechapper_be.webp' %}" class="testimonial-img2" style="background-color: rgba(54, 74, 122, 0.5)" alt="DECHAPPER">
+              </a>
+              <p>
+                <i class="bx bxs-quote-alt-left quote-icon-left"></i>
+                Erkend aannemer voor chapewerken. Bij De Chapper kan je terecht voor zowel kleine als grote werken, particulier of voor bedrijven en zowel voor nieuwbouw als voor renovaties.
+                <i class="bx bxs-quote-alt-right quote-icon-right"></i>
+              </p>
+            </div>
+          </div><!-- End testimonial item -->
+
+          <div class="swiper-slide">
+            <div class="testimonial-item">
+              <a href="https://www.allard-europe.com" target="_blank">
+                <img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/allard-white-2018.webp' %}" class="testimonial-img2" alt="ALLARD EUROPE" style="background-color: rgba(0, 0, 0, 0.0)">
+              </a>
+              <p>
+                <i class="bx bxs-quote-alt-left quote-icon-left"></i>
+                Gieten van staal en ijzer is een kunst die we meester zijn in elk detail.
+                <i class="bx bxs-quote-alt-right quote-icon-right"></i>
+              </p>
+            </div>
+          </div><!-- End testimonial item -->
+
+          <div class="swiper-slide">
+            <div class="testimonial-item">
+              <a href="https://www.voltagelightandsound.com" target="_blank">
+                <img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/logo_voltage.webp' %}" class="testimonial-img2" alt="VOLTAGE LIGHT AND SOUND" style="background-color: rgba(0, 0, 0, 0.5)">
+                <!--                  <h3>Voltage Light & Sound </h3>-->
+              </a>
+              <!--                    <h4>Kobe Schepers</h4>-->
+              <p>
+                <i class="bx bxs-quote-alt-left quote-icon-left"></i>
+                Van privéfeesten en bedrijfsevenementen tot fuiven en concerten: wij zorgen ervoor dat elke productie vlekkeloos verloopt en impact maakt.
+                <i class="bx bxs-quote-alt-right quote-icon-right"></i>
+              </p>
+            </div>
+          </div><!-- End testimonial item -->
+
+          <div class="swiper-slide">
+            <div class="testimonial-item">
+              <a href="#" target="">
+                <img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/logo_es-elektro_badge.webp' %}" class="testimonial-img2" alt="STEF ENGELEN ESELECTRO" style="background-color: rgba(255, 255, 255, 0.5)">
+              </a>
+              <p>
+                <i class="bx bxs-quote-alt-left quote-icon-left"></i>
+                Algemene elektriciteitswerken, Nieuwbouw-Renovatie, Automatiseringen en Netwerken ...
+                <i class="bx bxs-quote-alt-right quote-icon-right"></i>
+              </p>
+            </div>
+          </div><!-- End testimonial item -->
+
+        </div>
+        <div class="swiper-pagination"></div>
       </div>
-      <div class="about-grid">
-        <div class="portrait" role="img" aria-label="Noah Smeets in race-uitrusting"></div>
-        <div class="about-copy">
-          {% if website %}<div class="rich-copy">{{ website.aboutme|safe }}</div>{% endif %}
-          <dl class="driver-data">
-            <div><dt>Leeftijd</dt><dd>{{ website.age|default:"18" }}</dd></div>
-            <div><dt>Lengte</dt><dd>{{ website.height|default:"1.87 m" }}</dd></div>
-            <div><dt>Gewicht</dt><dd>{{ website.weight|default:"66 kg" }}</dd></div>
-            <div><dt>Thuisbasis</dt><dd>Zonhoven, BE</dd></div>
-          </dl>
-          <div class="profile-links">
-            <a href="https://www.instagram.com/kartingnoah/" target="_blank" rel="noopener">Instagram ↗</a>
-            <a href="https://www.sodiwseries.com/en-gb/drivers/smeets-noah-150609.html" target="_blank" rel="noopener">SWS profiel ↗</a>
+
+      <div class="justify-content-center testimonial-item" style="color:white">
+        <i class="bx bxs-quote-alt-left quote-icon-left"></i>
+        <p>Beste sponsor,</p>
+        <p>Ik wil je bedanken voor je geweldige steun aan mijn kartingcarrière. Dankzij jouw hulp kan ik mijn doelen nastreven en mezelf blijven ontwikkelen op het circuit. Jouw bijdrage betekent enorm veel voor mij, en ik hoop je trots te maken met mijn prestaties.</p>
+        <p>Dankjewel voor alles!</p>
+        <p>Met sportieve groet,</p>
+        <p>Noah Smeets</p>
+        <i class="bx bxs-quote-alt-right quote-icon-right"></i>
+      </div>
+
+    </div>
+  </section><!-- End Testimonials Section -->
+
+  <section id="resume" class="resume">
+  </section>
+
+  <!-- ======= My Services Section ======= -->
+  <section id="services" class="services">
+    <div class="container">
+
+      <div class="section-title">
+        <span>Kalender</span>
+        <h2>Calendar</h2>
+        <h3>2026</h3>
+      </div>
+
+      <div class="col-12">
+
+        <table
+                id="table"
+                data-toggle="table"
+                data-pagination="true"
+                data-page-size="50"
+                data-sort-name="date"
+                data-sort-order="asc"
+                data-row-style="rowStyle"
+                data-url="calendar?get=season">
+          <thead>
+          <tr>
+            <th data-field="date" data-align="center" data-sortable="true">Date</th>
+            <th data-field="location" data-align="center" data-sortable="true">Location</th>
+            <th data-field="country" data-align="center" data-sortable="true">Country</th>
+            <th data-field="championship" data-sortable="true">Championship</th>
+            <th data-field="title" data-align="center">Title</th>
+            <th data-field="endurance" data-align="center" data-title-tooltip="Endurance/Sprint" data-tooltip="Dirky" data-formatter="enduranceFormatter">Type</th>
+<!--            <th data-field="confirmed" data-align="center" data-formatter="confirmedFormatter" data-sortable="true">Reg</th>-->
+<!--            <th data-field="sws" data-align="center" data-formatter="swsFormatter" data-sortable="true">SWS</th>-->
+<!--            <th data-field="heats">Heats</th>-->
+<!--            <th data-field="ranking">Ranking</th>-->
+          </tr>
+          </thead>
+        </table>
+
+      </div>
+    </div>
+  </section><!-- End My Services Section -->
+
+
+  <!-- ======= My Portfolio Section ======= -->
+  <section id="portfolio" class="portfolio">
+    <div class="container">
+
+      <div class="section-title">
+        <span>Foto's</span>
+        <h2>Images</h2>
+        <p>All my race photos ...</p>
+      </div>
+
+      <ul id="portfolio-flters" class="d-flex justify-content-center">
+        <li data-filter="*">All</li>
+        <li data-filter=".filter-2025" class="filter-active">2025</li>
+        <li data-filter=".filter-2024">2024</li>
+      </ul>
+
+      <div class="row portfolio-container">
+
+        <div class="col-lg-4 col-md-6 portfolio-item filter-2025">
+          <div class="portfolio-img"><img src="{% static 'yanoa_racing/assets/img/display/season-2025/_K8A6924.webp' %}" class="img-fluid" alt="Noah Smeets"></div>
+          <div class="portfolio-info">
+            <h4>Noah Smeets</h4>
+            <p>2025</p>
+            <a href="{% static 'yanoa_racing/assets/img/display/season-2025/_K8A6924.webp' %}" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="Noah Smeets - Helmet"><i class="bx bx-plus"></i></a>
           </div>
         </div>
-      </div>
 
-      <div class="trophy-strip" aria-label="Podiumplaatsen">
-        {% for trophy in trophies %}
-        <article>
-          <h3>{{ trophy.year }}</h3>
-          <p><span class="medal gold"></span><b>{{ trophy.gold }}</b> goud</p>
-          <p><span class="medal silver"></span><b>{{ trophy.silver }}</b> zilver</p>
-          <p><span class="medal bronze"></span><b>{{ trophy.bronze }}</b> brons</p>
-        </article>
-        {% endfor %}
-      </div>
-    </section>
-
-    <section class="section calendar-section" id="calendar">
-      <div class="section-heading split-heading">
-        <div><p class="eyebrow">Raceplan</p><h2>Kalender {{ season_year }}</h2></div>
-        <p>Van korte sprints tot lange endurance races. Bevestigde en geplande wedstrijden voor dit seizoen.</p>
-      </div>
-      <div class="race-list">
-        {% for race in calendar %}
-        <article class="race-row{% if race == next %} is-next{% endif %}">
-          <time datetime="{{ race.date|date:'Y-m-d' }}"><strong>{{ race.date|date:"d" }}</strong><span>{{ race.date|date:"M" }}</span></time>
-          <div class="race-place"><h3>{{ race.location }}</h3><p>{{ race.country }}</p></div>
-          <div class="race-series"><p>{{ race.championship }}</p><span>{{ race.title }}</span></div>
-          <span class="race-type">{{ race.endurance|yesno:"Endurance,Sprint" }}</span>
-          {% if race.confirmed %}<span class="confirmed">Bevestigd</span>{% else %}<span class="planned">Gepland</span>{% endif %}
-        </article>
-        {% empty %}
-        <p class="empty">De nieuwe racekalender wordt binnenkort bekendgemaakt.</p>
-        {% endfor %}
-      </div>
-    </section>
-
-    <section class="section gallery-section" id="gallery">
-      <div class="section-heading split-heading">
-        <div><p class="eyebrow">Op het circuit</p><h2>Racebeelden</h2></div>
-        <div class="filters" aria-label="Filter foto's">
-          <button class="active" type="button" data-filter="all">Alles</button>
-          <button type="button" data-filter="2025">2025</button>
-          <button type="button" data-filter="2024">2024</button>
+        {% for event in events|dictsortreversed:"date" %}
+        <div class="col-lg-4 col-md-6 portfolio-item filter-{{event.filter}}">
+          <div class="portfolio-img"><img src="{% static event.thumbnail_path %}" class="img-fluid" alt="Noah Smeets" loading="lazy"></div>
+          <div class="portfolio-info">
+            <h4>{{event.event}} {{event.season}}</h4>
+            <p>{{event.date|date:'d/m'}} {{event.location}}</p>
+            <a href="{% static event.display_path %}" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="{{event.event}} {{event.season}} - {{event.date|date:'d/m'}} {{event.location}}"><i class="bx bx-plus"></i></a>
+          </div>
         </div>
-      </div>
-      <div class="gallery-grid">
-        {% for event in events %}
-        <button class="gallery-card{% if forloop.counter > 18 %} initially-hidden{% endif %}" type="button"
-                data-season="{{ event.season }}"
-                data-full="{% static event.display_path %}"
-                data-caption="{{ event.event }} · {{ event.location }} · {{ event.date|date:'d/m/Y' }}">
-          <img loading="lazy" decoding="async" width="900" height="675"
-               src="{% static event.thumbnail_path %}"
-               alt="{{ event.event }} in {{ event.location }}">
-          <span><b>{{ event.event }}</b><small>{{ event.location }} · {{ event.date|date:"d/m/Y" }}</small></span>
-        </button>
         {% endfor %}
       </div>
-      {% if events|length > 18 %}<button class="button load-more" type="button">Meer foto's laden</button>{% endif %}
-    </section>
 
-    <section class="partners" id="sponsors">
-      <div class="section partner-intro">
-        <p class="eyebrow">Samen sneller</p>
-        <h2>Partners maken<br>het verschil.</h2>
-        <p>Elke training, inschrijving en wedstrijddag is teamwork. Dank aan de partners die dit traject mogelijk maken.</p>
-      </div>
-      <div class="partner-grid">
-        <a href="https://yanoa.be" target="_blank" rel="noopener"><img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/yanoa_be-white.webp' %}" alt="YaNoa.be"></a>
-        <a href="https://dechapper.be" target="_blank" rel="noopener"><img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/dechapper_be.webp' %}" alt="De Chapper"></a>
-        <a href="https://www.allard-europe.com" target="_blank" rel="noopener"><img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/allard-white-2018.webp' %}" alt="Allard Europe"></a>
-        <a href="https://www.voltagelightandsound.com" target="_blank" rel="noopener"><img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/logo_voltage.webp' %}" alt="Voltage Light & Sound"></a>
-        <span><img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/logo_es-elektro_badge.webp' %}" alt="ES Elektro"></span>
-      </div>
-      <div class="sponsor-callout section">
-        <div><p class="eyebrow">Sponsoring</p><h3>Zin om mee aan de start te staan?</h3></div>
-        <p>Van naamsvermelding tot een partnership op maat: we bouwen graag een formule die bij jouw merk past.</p>
-        <a class="button button-primary" href="mailto:racing@yanoa.be">Bespreek de mogelijkheden</a>
-      </div>
-    </section>
+    </div>
+  </section><!-- End My Portfolio Section -->
 
-    <section class="section contact" id="contact">
-      <div><p class="eyebrow">Contact</p><h2>Let’s race.</h2></div>
-      <div class="contact-links">
-        <a href="mailto:racing@yanoa.be"><small>E-mail</small><strong>racing@yanoa.be</strong><span>↗</span></a>
-        <a href="tel:+32476691902"><small>Telefoon</small><strong>+32 476 69 19 02</strong><span>↗</span></a>
-        <a href="https://www.instagram.com/kartingnoah/" target="_blank" rel="noopener"><small>Instagram</small><strong>@kartingnoah</strong><span>↗</span></a>
-      </div>
-    </section>
-  </main>
+  <section id="pricing" class="pricing">
+    <div class="container">
 
-  <footer><span>© {% now "Y" %} Noah Smeets</span><a href="/admin/">Beheer</a><span>Powered by <a href="https://yanoa.be">YaNoa.be</a></span></footer>
-  <dialog class="lightbox"><button type="button" aria-label="Sluiten">×</button><img alt=""><p></p></dialog>
+      <div class="section-title">
+        <span>Sponsoring</span>
+        <h2>Sponsoring</h2>
+        <p>Interesse om te sponsoren.</p>
+        <p>Je kan uit de volgende sponsor paketten een keuze maken of eventueel zelf iets voorstellen. Neem contact op met mij via email of telefoon ...</p>
+      </div>
+
+      <div class="row justify-content-center">
+
+        <div class="col-lg-2 col-md-6">
+          <div class="box">
+            <h3>Brons</h3>
+            <h4><sup>€</sup>50<span></span></h4>
+            <ul>
+              <li>U ontvangt een bewijs van betaling</li>
+              <li>Logo/naam op deze website</li>
+              <li>Uitnodiging wedstrijden</li>
+              <li>1 tickets voor de Fandag</li>
+              <!--                <li class="na">Reclame op al mijn (gelinkte) sociale media kanalen</li>-->
+              <!--                <li class="na">Logo op racepak</li>-->
+            </ul>
+            <!--              <div class="btn-wrap">-->
+            <!--                <a href="#" class="btn-buy">Buy Now</a>-->
+            <!--               </div>-->
+          </div>
+        </div>
+        <!--        </div>-->
+
+        <!--        <div class="row justify-content-center">-->
+        <div class="col-lg-2 col-md-6 mt-4 mt-md-0">
+          <div class="box">
+            <h3>Silver</h3>
+            <h4><sup>€</sup>250<span></span></h4>
+            <ul>
+              <li>U ontvangt een bewijs van betaling</li>
+              <li>Logo/naam op deze website</li>
+              <li>Uitnodiging wedstrijden</li>
+              <li>2 tickets voor de Fandag</li>
+              <li>Reclame op al mijn (gelinkte) sociale media kanalen</li>
+              <!--                <li class="na">Logo op racepak</li>-->
+            </ul>
+            <!--              <div class="btn-wrap">-->
+            <!--                <a href="#" class="btn-buy">Buy Now</a>-->
+            <!--              </div>-->
+          </div>
+        </div>
+
+        <div class="col-lg-2 col-md-6 mt-4 mt-lg-0">
+          <div class="box">
+            <span class="advanced">Populair</span>
+            <h3>Gold</h3>
+            <h4><sup>€</sup>500<span></span></h4>
+            <ul>
+              <li>U ontvangt een bewijs van betaling</li>
+              <li>Logo/naam op deze website</li>
+              <li>Uitnodiging wedstrijden</li>
+              <li>2 tickets voor de Fandag</li>
+              <li>Reclame op al mijn (gelinkte) sociale media kanalen</li>
+              <li>Logo op casual kledij voor interviews (polo, hoodie, ...)</li>
+              <li>1 Logo Racepak</li>
+            </ul>
+            <!--              <div class="btn-wrap">-->
+            <!--                <a href="#" class="btn-buy">Buy Now</a>-->
+            <!--              </div>-->
+          </div>
+        </div>
+
+        <div class="col-lg-2 col-md-6 mt-4 mt-lg-0">
+          <div class="box">
+            <h3>Platinum</h3>
+            <h4><sup>€</sup>750<span></span></h4>
+            <ul>
+              <li>U ontvangt een bewijs van betaling</li>
+              <li>Logo/naam op deze website</li>
+              <li>Uitnodiging wedstrijden</li>
+              <li>4 tickets voor de Fandag</li>
+              <li>Reclame op al mijn (gelinkte) sociale media kanalen</li>
+              <li>Logo op casual kledij voor interviews (polo, hoodie, ...)</li>
+              <li>2 Logo's Racepak</li>
+              <!--                <li class="na">Logo op pet</li>-->
+            </ul>
+            <!--              <div class="btn-wrap">-->
+            <!--                <a href="#" class="btn-buy">Buy Now</a>-->
+            <!--              </div>-->
+          </div>
+        </div>
+        <!--        </div>-->
+
+        <!--        <div class="row justify-content-center">-->
+
+        <div class="col-lg-2 col-md-6 mt-4 mt-lg-0">
+          <div class="box">
+            <h3>Titanium</h3>
+            <h4><sup>€</sup>n.o.t.k<span></span></h4>
+            <ul>
+              <li>U ontvangt een bewijs van betaling</li>
+              <li>Logo/naam op deze website</li>
+              <li>Uitnodiging wedstrijden</li>
+              <li>4 tickets voor de Fandag</li>
+              <li>Reclame op al mijn (gelinkte) sociale media kanalen</li>
+              <li>Logo op casual kledij voor interviews (polo, hoodie, ...)</li>
+              <li>Groot Logo Racepak</li>
+              <!--                <li class="na">Logo op pet</li>-->
+            </ul>
+            <!--              <div class="btn-wrap">-->
+            <!--                <a href="#" class="btn-buy">Buy Now</a>-->
+            <!--              </div>-->
+          </div>
+        </div>
+
+        <div class="col-lg-2 col-md-6 mt-4 mt-lg-0">
+          <div class="box">
+            <span class="advanced">Hoofd</span>
+            <h3>Diamond</h3>
+            <h4><sup>€</sup>n.o.t.k<span></span></h4>
+            <ul>
+              <li>U ontvangt een bewijs van betaling</li>
+              <li>Logo/naam op deze website</li>
+              <li>Uitnodiging wedstrijden</li>
+              <li>4 tickets voor de Fandag</li>
+              <li>Reclame op al mijn (gelinkte) sociale media kanalen</li>
+              <li>Logo op casual kledij voor interviews (polo, hoodie, ...)</li>
+              <li>Grootste Logo Racepak</li>
+              <li>Logo op pet</li>
+              <li>Logo op vizier (helm)</li>
+            </ul>
+            <!--              <div class="btn-wrap">-->
+            <!--                <a href="#" class="btn-buy">Buy Now</a>-->
+            <!--              </div>-->
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </section><!-- End Pricing Section -->
+
+  <!-- ======= Contact Me Section ======= -->
+  <section id="contact" class="contact">
+    <div class="container">
+
+      <div class="section-title">
+        <span>Contacteer Mij</span>
+        <h2>Contact Me</h2>
+        <p>Wil jij mij sponsoren of heb je een andere vraag, dan kan je me contacteren via email ...</p>
+      </div>
+
+      <div class="row">
+
+        <div class="col-lg-12">
+
+          <div class="row">
+            <!--              <div class="col-md-12">-->
+            <!--                <div class="info-box">-->
+            <!--                  <i class="bx bx-share-alt"></i>-->
+            <!--                  <h3>Social Profiles</h3>-->
+            <!--                  <div class="social-links">-->
+            <!--&lt;!&ndash;                    <a href="#" class="twitter"><i class="bi bi-twitter"></i></a>&ndash;&gt;-->
+            <!--&lt;!&ndash;                    <a href="#" class="facebook"><i class="bi bi-facebook"></i></a>&ndash;&gt;-->
+            <!--                    <a href="https://www.instagram.com/kartingnoah/" class="instagram"><i class="bi bi-instagram"></i></a>-->
+            <!--&lt;!&ndash;                    <a href="#" class="google-plus"><i class="bi bi-skype"></i></a>&ndash;&gt;-->
+            <!--&lt;!&ndash;                    <a href="#" class="linkedin"><i class="bi bi-linkedin"></i></a>&ndash;&gt;-->
+            <!--                  </div>-->
+            <!--                </div>-->
+            <!--              </div>-->
+            <div class="col-md-3">
+              <div class="info-box mt-4">
+                <i class="bx bxl-twitter"></i>
+                <h3>Instagram</h3>
+                <p><a href="https://www.instagram.com/kartingnoah/">@kartingnoah</a></p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="info-box mt-4">
+                <i class="bx bx-envelope"></i>
+                <h3>Email Me</h3>
+                <p><a href="emailto:racing@yanoa.be">racing@yanoa.be</a></p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="info-box mt-4">
+                <i class="bx bx-phone-call"></i>
+                <h3>Call Me</h3>
+                <p><a href="tel:+32 476 691 902">+32 476 691 902</a></p>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="info-box mt-4">
+                <i class="bx bx-euro"></i>
+                <h3>YaNoa Racing</h3>
+                <p>BE59 0637 8630 0526</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!--          <div class="col-lg-6">-->
+        <!--            <form action="../static/yanoa_racing/forms/contact.php" method="post" role="form" class="php-email-form">-->
+        <!--              <div class="row">-->
+        <!--                <div class="col-md-6 form-group">-->
+        <!--                  <input type="text" name="name" class="form-control" id="name" placeholder="Your Name" required>-->
+        <!--                </div>-->
+        <!--                <div class="col-md-6 form-group mt-3 mt-md-0">-->
+        <!--                  <input type="email" class="form-control" name="email" id="email" placeholder="Your Email" required>-->
+        <!--                </div>-->
+        <!--              </div>-->
+        <!--              <div class="form-group mt-3">-->
+        <!--                <input type="text" class="form-control" name="subject" id="subject" placeholder="Subject" required>-->
+        <!--              </div>-->
+        <!--              <div class="form-group mt-3">-->
+        <!--                <textarea class="form-control" name="message" rows="6" placeholder="Message" required></textarea>-->
+        <!--              </div>-->
+        <!--              <div class="my-3">-->
+        <!--                <div class="loading">Loading</div>-->
+        <!--                <div class="error-message"></div>-->
+        <!--                <div class="sent-message">Your message has been sent. Thank you!</div>-->
+        <!--              </div>-->
+        <!--              <div class="text-center"><button type="submit">Send Message</button></div>-->
+        <!--            </form>-->
+        <!--          </div>-->
+
+      </div>
+
+    </div>
+
+  </section><!-- End Contact Me Section -->
+
+</main><!-- End #main -->
+
+<!-- ======= Footer ======= -->
+<footer id="footer">
+  <div class="container">
+    <h3>Noah Smeets</h3>
+    <p>Kart Racer</p>
+    <div class="social-links">
+      <!--        <a href="#" class="twitter"><i class="bx bxl-twitter"></i></a>-->
+      <!--        <a href="#" class="facebook"><i class="bx bxl-facebook"></i></a>-->
+      <a href="https://www.instagram.com/kartingnoah/" class="instagram"><i class="bx bxl-instagram"></i></a>
+      <!--        <a href="#" class="google-plus"><i class="bx bxl-skype"></i></a>-->
+      <!--        <a href="#" class="linkedin"><i class="bx bxl-linkedin"></i></a>-->
+    </div>
+    <div class="copyright">
+      &copy; Copyright <strong><span>YaNoa.be</span></strong>. All Rights Reserved
+    </div>
+
+  </div>
+</footer><!-- End Footer -->
+
+<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+<!-- Vendor JS Files -->
+<script src="{% static 'yanoa_racing/assets/vendor/purecounter/purecounter_vanilla.js' %}"></script>
+<script src="{% static 'yanoa_racing/assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'yanoa_racing/assets/vendor/glightbox/js/glightbox.min.js' %}"></script>
+<script src="{% static 'yanoa_racing/assets/vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
+<script src="{% static 'yanoa_racing/assets/vendor/swiper/swiper-bundle.min.js' %}"></script>
+<script src="{% static 'yanoa_racing/assets/vendor/waypoints/noframework.waypoints.js' %}"></script>
+<script src="{% static 'yanoa_racing/assets/vendor/php-email-form/validate.js' %}"></script>
+
+<!-- Template Main JS File -->
+<script src="{% static 'yanoa_racing/assets/js/main.js' %}"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-table@1.24.0/dist/bootstrap-table.min.js"></script>
+
+<script>
+
+  const nextDate = new Date("{{ next.date|date:"Y-m-d" }}");
+
+  function swsFormatter(value) {
+    var icon = value === 1 ? 'bi-bookmark-check-fill' : 'bi-bookmark-x'
+    var color = value === 1 ? '#013220' : '#8b0000'
+    return '<i class="bi ' + icon + '" style="color: ' + color + ';"></i>'
+  }
+
+  function confirmedFormatter(value) {
+    //var icon = value === 1 ? 'bi-calendar-check' : 'bi-calendar-x'
+    var icon = value === 1 ? 'bi-bookmark-check-fill' : 'bi-bookmark-x'
+    var color = value === 1 ? '#013220' : '#8b0000'
+    return '<i class="bi ' + icon + '" style="color: ' + color + ';"></i>'
+  }
+
+  /*function enduranceFormatter(value) {
+    var icon = value === 1 ? 'Endurance' : 'Sprint'
+    return icon
+  }*/
+
+  function enduranceFormatter(value) {
+    var icon = value === 1 ? 'bi-infinity' : 'bi-watch'
+    return '<i class="bi ' + icon + '"></i>'
+  }
+
+  function rowStyle(row, index) {
+      const rowDate = new Date(row.date); // Parse the row's date string into a Date object
+
+      if (rowDate.getTime() === nextDate.getTime()) {
+          return { classes: 'table-warning' }; // Highlight rows with the matching date
+      } else {
+        return {}; // No styling for other rows
+      }
+  }
+
+  window.addEventListener('load', function () {
+    var iso = new Isotope('.portfolio-container', {
+      itemSelector: '.portfolio-item',
+      layoutMode: 'fitRows'
+    });
+
+    // Trigger the filter to show only 2025 items
+    iso.arrange({ filter: '.filter-2025' });
+
+    // Update active class on filter buttons
+    document.querySelectorAll('#portfolio-flters li').forEach(function (el) {
+      el.classList.remove('filter-active');
+    });
+    document.querySelector('#portfolio-flters li[data-filter=".filter-2025"]').classList.add('filter-active');
+  });
+
+</script>
+
 </body>
+
 </html>
