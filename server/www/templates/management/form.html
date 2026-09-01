@@ -1,0 +1,14 @@
+{% extends "management/base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+  <section class="manage-card form-card">
+    <p class="eyebrow">Websitebeheer</p>
+    <h1>{{ title }}</h1>
+    <p>{{ description }}</p>
+    {{ form.non_field_errors }}
+    <form method="post" enctype="multipart/form-data" class="manage-form">{% csrf_token %}
+      {% for field in form %}<div class="form-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">{% if field.field.widget.input_type == 'checkbox' %}{{ field }} <label for="{{ field.id_for_label }}">{{ field.label }}</label>{% else %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% endif %}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% if field.errors %}<div class="field-error">{{ field.errors|striptags }}</div>{% endif %}</div>{% endfor %}
+      <div class="form-actions"><button class="primary" type="submit">Opslaan</button><a href="{% url 'www:manage' %}">Annuleren</a></div>
+    </form>
+  </section>
+{% endblock %}

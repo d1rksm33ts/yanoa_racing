@@ -52,6 +52,7 @@
       <li><a class="nav-link scrollto " href="#sponsors">Sponsors</a></li>
       <li><a class="nav-link scrollto " href="#pricing">Sponsoring</a></li>
       <li><a class="nav-link scrollto" href="#contact">Contact</a></li>
+      <li><a class="nav-link" href="{% url 'www:manage' %}">{% if request.user.is_authenticated %}Beheer{% else %}Login{% endif %}</a></li>
     </ul>
     <i class="bi bi-list mobile-nav-toggle"></i>
   </nav><!-- .navbar -->
@@ -416,11 +417,11 @@
 
         {% for event in events|dictsortreversed:"date" %}
         <div class="col-lg-4 col-md-6 portfolio-item filter-{{event.filter}}">
-          <div class="portfolio-img"><img src="{% static event.thumbnail_path %}" class="img-fluid" alt="Noah Smeets"></div>
+          <div class="portfolio-img"><img src="{{ event.thumbnail_url }}" class="img-fluid" alt="Noah Smeets"></div>
           <div class="portfolio-info">
             <h4>{{event.event}} {{event.season}}</h4>
             <p>{{event.date|date:'d/m'}} {{event.location}}</p>
-            <a href="{% static event.display_path %}" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="{{event.event}} {{event.season}} - {{event.date|date:'d/m'}} {{event.location}}"><i class="bx bx-plus"></i></a>
+            <a href="{{ event.display_url }}" data-gallery="portfolioGallery" class="portfolio-lightbox preview-link" title="{{event.event}} {{event.season}} - {{event.date|date:'d/m'}} {{event.location}}"><i class="bx bx-plus"></i></a>
           </div>
         </div>
         {% endfor %}

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 from django.db import models
+from django.templatetags.static import static
 
 
 class ImageEvent(models.Model):
@@ -11,6 +12,8 @@ class ImageEvent(models.Model):
     location = models.CharField(max_length=64, blank=True)
     event = models.CharField(max_length=64, blank=True)
     date = models.DateField(blank=True, null=True)
+    display_image = models.ImageField(upload_to="gallery/display/", blank=True)
+    thumbnail_image = models.ImageField(upload_to="gallery/thumbs/", blank=True)
 
     def __str__(self):
         return f"{self.event} — {self.location} ({self.date or self.season})"
@@ -24,6 +27,18 @@ class ImageEvent(models.Model):
     def display_path(self):
         image = Path(self.image).with_suffix(".webp")
         return f"yanoa_racing/assets/img/display/season-{self.season}/{image.as_posix()}"
+
+    @property
+    def thumbnail_url(self):
+        if self.thumbnail_image:
+            return self.thumbnail_image.url
+        return static(self.thumbnail_path)
+
+    @property
+    def display_url(self):
+        if self.display_image:
+            return self.display_image.url
+        return static(self.display_path)
 
 
 class NextEvent(models.Model):

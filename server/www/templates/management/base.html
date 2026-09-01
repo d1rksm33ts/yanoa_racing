@@ -1,0 +1,25 @@
+{% load static %}<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex,nofollow">
+  <title>{% block title %}Websitebeheer{% endblock %} | Noah Smeets Racing</title>
+  <link rel="icon" href="{% static 'yanoa_racing/assets/img/favicon.png' %}">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700|Raleway:500,600,700|Satisfy" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'yanoa_racing/assets/css/management.css' %}">
+</head>
+<body>
+  <header class="manage-header">
+    <a class="manage-brand" href="{% url 'www:manage' %}"><strong>Noah Smeets</strong><span>Racing beheer</span></a>
+    <nav>
+      <a href="{% url 'www:index' %}" target="_blank" rel="noopener">Website bekijken</a>
+      <form method="post" action="{% url 'www:logout' %}">{% csrf_token %}<button type="submit">Uitloggen</button></form>
+    </nav>
+  </header>
+  <main class="manage-shell">
+    {% if messages %}<div class="messages">{% for message in messages %}<div class="alert" role="status">{{ message }}</div>{% endfor %}</div>{% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>

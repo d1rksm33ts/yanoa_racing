@@ -1,0 +1,32 @@
+{% extends "management/base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+  <div class="page-heading"><div><p class="eyebrow">Websitebeheer</p><h1>Dashboard</h1><p>Beheer hier de inhoud van racing.yanoa.be.</p></div></div>
+
+  <section class="manage-card" id="calendar">
+    <div class="card-heading"><div><h2>Kalender</h2><p>Wedstrijden, resultaten en bevestigingsstatus.</p></div><a class="primary action" href="{% url 'www:calendar-add' %}">Wedstrijd toevoegen</a></div>
+    <div class="table-scroll"><table><thead><tr><th>Datum</th><th>Locatie</th><th>Kampioenschap</th><th>Type</th><th>Status</th><th></th></tr></thead><tbody>
+      {% for event in calendar_events %}<tr><td>{{ event.date|date:"d/m/Y" }}</td><td>{{ event.location }} · {{ event.country }}</td><td>{{ event.championship }}{% if event.title %}<small>{{ event.title }}</small>{% endif %}</td><td>{% if event.endurance %}Endurance{% else %}Sprint{% endif %}</td><td>{% if event.confirmed %}<span class="status yes">Bevestigd</span>{% else %}<span class="status">Voorlopig</span>{% endif %}</td><td class="row-actions"><a href="{% url 'www:calendar-edit' event.pk %}">Aanpassen</a><form method="post" action="{% url 'www:calendar-delete' event.pk %}" onsubmit="return confirm('Deze wedstrijd verwijderen?')">{% csrf_token %}<button class="danger" type="submit">Verwijderen</button></form></td></tr>
+      {% empty %}<tr><td colspan="6">Nog geen kalenderwedstrijden.</td></tr>{% endfor %}
+    </tbody></table></div>
+  </section>
+
+  <section class="manage-card" id="images">
+    <div class="card-heading"><div><h2>Foto's</h2><p>Galerijbeelden en wedstrijdinformatie.</p></div><a class="primary action" href="{% url 'www:image-add' %}">Foto toevoegen</a></div>
+    <div class="image-grid">
+      {% for image in images %}<article class="image-item"><img src="{{ image.thumbnail_url }}" alt=""><div><strong>{{ image.event|default:"Racefoto" }}</strong><span>{{ image.date|date:"d/m/Y" }} · {{ image.location }}</span><span>Seizoen {{ image.season }}</span></div><div class="row-actions"><a href="{% url 'www:image-edit' image.pk %}">Aanpassen</a><form method="post" action="{% url 'www:image-delete' image.pk %}" onsubmit="return confirm('Deze foto uit de galerij verwijderen?')">{% csrf_token %}<button class="danger" type="submit">Verwijderen</button></form></div></article>
+      {% empty %}<p>Nog geen foto's.</p>{% endfor %}
+    </div>
+  </section>
+
+  <div class="two-column">
+    <section class="manage-card" id="trophies">
+      <div class="card-heading"><div><h2>Trofeeën</h2><p>Podiumplaatsen per jaar.</p></div><a class="primary action" href="{% url 'www:trophy-add' %}">Jaar toevoegen</a></div>
+      <div class="trophy-list">{% for trophy in trophies %}<div><strong>{{ trophy.year }}</strong><span>🥇 {{ trophy.gold }} &nbsp; 🥈 {{ trophy.silver }} &nbsp; 🥉 {{ trophy.bronze }}</span><div class="row-actions"><a href="{% url 'www:trophy-edit' trophy.pk %}">Aanpassen</a><form method="post" action="{% url 'www:trophy-delete' trophy.pk %}" onsubmit="return confirm('Dit trofeejaar verwijderen?')">{% csrf_token %}<button class="danger" type="submit">Verwijderen</button></form></div></div>{% empty %}<p>Nog geen trofeeën.</p>{% endfor %}</div>
+    </section>
+    <section class="manage-card" id="about">
+      <div class="card-heading"><div><h2>About Me</h2><p>Profieltekst en persoonlijke gegevens.</p></div><a class="primary action" href="{% url 'www:website-edit' %}">Aanpassen</a></div>
+      {% if website %}<div class="about-preview">{{ website.aboutme|safe }}</div><dl><dt>Leeftijd</dt><dd>{{ website.age }}</dd><dt>Gewicht</dt><dd>{{ website.weight }}</dd><dt>Lengte</dt><dd>{{ website.height }}</dd></dl>{% else %}<p>Nog geen profielgegevens.</p>{% endif %}
+    </section>
+  </div>
+{% endblock %}

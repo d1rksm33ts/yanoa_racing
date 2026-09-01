@@ -1,9 +1,18 @@
+import mimetypes
 from datetime import date
+from pathlib import Path
 
-from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db.models import Q
+from django.http import FileResponse, Http404, HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.cache import cache_control
+from django.views.decorators.http import require_POST
 
+from .forms import CalendarEventForm, GalleryImageForm, TrophyForm, WebsiteForm
 from .models import CalendarEvent, ImageEvent, Trophy, Website
 
 def index(request):
@@ -12,7 +21,7 @@ def index(request):
     season_year = upcoming.values_list("date__year", flat=True).first() or today.year
     return render(request, "index.html", {
         "calendar": CalendarEvent.objects.filter(date__year=season_year).order_by("date", "location"),
-        "events": ImageEvent.objects.exclude(image="").order_by("-date", "-pk"),
+        "events": ImageEvent.objects.filter(Q(image__gt="") | Q(display_image__gt="")).order_by("-date", "-pk"),
         "next": upcoming.first(),
         "season_year": season_year,
         "trophies": Trophy.objects.order_by("-year"),
@@ -39,6 +48,114 @@ def calendar(request):
         "heats": event.heats,
         "ranking": event.ranking,
     } for event in events], safe=False)
+
+
+@login_required
+def manage(request):
+    return render(request, "management/dashboard.html", {
+        "calendar_events": CalendarEvent.objects.order_by("-date", "location"),
+        "images": ImageEvent.objects.order_by("-date", "-pk"),
+        "trophies": Trophy.objects.order_by("-year"),
+        "website": Website.objects.last(),
+    })
+
+
+def _edit(request, form_class, instance, title, description, success_message, anchor):
+    if request.method == "POST":
+        form = form_class(request.POST, request.FILES, instance=instance)
+        if form.is_valid():
+            form.save()
+            messages.success(request, success_message)
+            return redirect(f"{reverse('www:manage')}{anchor}")
+    else:
+        form = form_class(instance=instance)
+    return render(request, "management/form.html", {
+        "form": form,
+        "title": title,
+        "description": description,
+    })
+
+
+@login_required
+def calendar_edit(request, pk=None):
+    event = get_object_or_404(CalendarEvent, pk=pk) if pk else None
+    return _edit(
+        request, CalendarEventForm, event,
+        "Kalenderwedstrijd aanpassen" if event else "Kalenderwedstrijd toevoegen",
+        "Beheer alle kalendergegevens die op de publieke website verschijnen.",
+        "De kalenderwedstrijd is opgeslagen.", "#calendar",
+    )
+
+
+@login_required
+@require_POST
+def calendar_delete(request, pk):
+    get_object_or_404(CalendarEvent, pk=pk).delete()
+    messages.success(request, "De kalenderwedstrijd is verwijderd.")
+    return redirect(f"{reverse('www:manage')}#calendar")
+
+
+@login_required
+def image_edit(request, pk=None):
+    image = get_object_or_404(ImageEvent, pk=pk) if pk else None
+    return _edit(
+        request, GalleryImageForm, image,
+        "Foto aanpassen" if image else "Foto toevoegen",
+        "Upload een foto en voeg de wedstrijdgegevens toe.",
+        "De foto is opgeslagen.", "#images",
+    )
+
+
+@login_required
+@require_POST
+def image_delete(request, pk):
+    image = get_object_or_404(ImageEvent, pk=pk)
+    storage = image.display_image.storage if image.display_image else None
+    files = [field.name for field in (image.display_image, image.thumbnail_image) if field]
+    image.delete()
+    if storage:
+        for filename in files:
+            storage.delete(filename)
+    messages.success(request, "De foto is verwijderd.")
+    return redirect(f"{reverse('www:manage')}#images")
+
+
+@login_required
+def trophy_edit(request, pk=None):
+    trophy = get_object_or_404(Trophy, pk=pk) if pk else None
+    return _edit(
+        request, TrophyForm, trophy,
+        "Trofeeën aanpassen" if trophy else "Trofeejaar toevoegen",
+        "Werk het aantal podiumplaatsen voor dit jaar bij.",
+        "De trofeeën zijn opgeslagen.", "#trophies",
+    )
+
+
+@login_required
+@require_POST
+def trophy_delete(request, pk):
+    get_object_or_404(Trophy, pk=pk).delete()
+    messages.success(request, "Het trofeejaar is verwijderd.")
+    return redirect(f"{reverse('www:manage')}#trophies")
+
+
+@login_required
+def website_edit(request):
+    return _edit(
+        request, WebsiteForm, Website.objects.last(), "About Me aanpassen",
+        "Pas de profieltekst en de gegevens naast de foto aan.",
+        "About Me is opgeslagen.", "#about",
+    )
+
+
+@cache_control(public=True, max_age=31536000, immutable=True)
+def media(request, path):
+    root = settings.MEDIA_ROOT.resolve()
+    file_path = (root / Path(path)).resolve()
+    if not file_path.is_relative_to(root) or not file_path.is_file():
+        raise Http404
+    content_type = mimetypes.guess_type(file_path.name)[0] or "application/octet-stream"
+    return FileResponse(file_path.open("rb"), content_type=content_type)
 
 @cache_control(no_store=True)
 def health(request):
