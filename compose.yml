@@ -1,0 +1,52 @@
+name: yanoa-racing
+
+services:
+  web:
+    build:
+      context: .
+    image: yanoa-racing:local
+    container_name: yanoa-racing
+    restart: unless-stopped
+    environment:
+      DJANGO_SECRET_KEY_FILE: /run/secrets/django_secret_key
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-racing.yanoa.be,racing.greenfield.yanoa.be,127.0.0.1}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-https://racing.yanoa.be,https://racing.greenfield.yanoa.be}
+      DJANGO_SECURE_COOKIES: "true"
+      DB_HOST: yanoa-postgres
+      DB_PORT: "5432"
+      DB_NAME: ${DB_NAME:-yanoa_racing}
+      DB_USER: ${DB_USER:-yanoa_racing_app}
+      DB_PASSWORD_FILE: /run/secrets/db_password
+    secrets:
+      - django_secret_key
+      - db_password
+    networks:
+      - edge
+      - data
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health/', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+secrets:
+  django_secret_key:
+    file: /srv/yanoa/secrets/yanoa_racing/django_secret_key
+  db_password:
+    file: /srv/yanoa/secrets/yanoa_racing/db_password
+
+networks:
+  edge:
+    name: yanoa-edge
+    external: true
+  data:
+    name: yanoa-data
+    external: true

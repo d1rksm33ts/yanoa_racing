@@ -1,0 +1,170 @@
+{% load static %}
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Noah Smeets · Kart Racer</title>
+  <meta name="description" content="Volg kart racer Noah Smeets: kalender, resultaten, foto's en sponsoring.">
+  <link rel="icon" href="{% static 'yanoa_racing/assets/img/favicon.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'yanoa_racing/assets/img/apple-touch-icon.png' %}">
+  <link rel="stylesheet" href="{% static 'yanoa_racing/assets/css/style.css' %}">
+  <script defer src="{% static 'yanoa_racing/assets/js/main.js' %}"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Naar inhoud</a>
+  <header class="site-header">
+    <a class="brand" href="#top" aria-label="Noah Smeets, startpagina">
+      <span class="brand-mark">NS</span>
+      <span>Noah Smeets</span>
+    </a>
+    <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+      <span></span><span></span><span></span><span class="sr-only">Menu</span>
+    </button>
+    <nav id="site-nav" aria-label="Hoofdnavigatie">
+      <a href="#about">Over Noah</a>
+      <a href="#calendar">Kalender</a>
+      <a href="#gallery">Foto's</a>
+      <a href="#sponsors">Sponsors</a>
+      <a class="nav-cta" href="#contact">Contact</a>
+    </nav>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="hero-shade"></div>
+      <div class="hero-content">
+        <p class="eyebrow">Belgian kart racer</p>
+        <h1>Racing is where<br><em>focus becomes speed.</em></h1>
+        <p class="hero-copy">Noah Smeets rijdt indoor- en outdoorwedstrijden met één doel: elke ronde beter.</p>
+        <div class="hero-actions">
+          <a class="button button-primary" href="#calendar">Bekijk kalender</a>
+          <a class="button button-ghost" href="#sponsors">Word partner</a>
+        </div>
+      </div>
+      {% if next %}
+      <aside class="next-race" aria-label="Volgende race">
+        <p>Volgende race</p>
+        <time datetime="{{ next.date|date:'Y-m-d' }}">
+          <strong>{{ next.date|date:"d" }}</strong>
+          <span>{{ next.date|date:"M Y" }}</span>
+        </time>
+        <div><b>{{ next.location }}</b><small>{{ next.championship }} · {{ next.country }}</small></div>
+      </aside>
+      {% endif %}
+      <a class="scroll-cue" href="#about" aria-label="Scroll naar Over Noah">↓</a>
+    </section>
+
+    <section class="section about" id="about">
+      <div class="section-heading">
+        <p class="eyebrow">De racer</p>
+        <h2>Talent groeit<br>ronde per ronde.</h2>
+      </div>
+      <div class="about-grid">
+        <div class="portrait" role="img" aria-label="Noah Smeets in race-uitrusting"></div>
+        <div class="about-copy">
+          {% if website %}<div class="rich-copy">{{ website.aboutme|safe }}</div>{% endif %}
+          <dl class="driver-data">
+            <div><dt>Leeftijd</dt><dd>{{ website.age|default:"18" }}</dd></div>
+            <div><dt>Lengte</dt><dd>{{ website.height|default:"1.87 m" }}</dd></div>
+            <div><dt>Gewicht</dt><dd>{{ website.weight|default:"66 kg" }}</dd></div>
+            <div><dt>Thuisbasis</dt><dd>Zonhoven, BE</dd></div>
+          </dl>
+          <div class="profile-links">
+            <a href="https://www.instagram.com/kartingnoah/" target="_blank" rel="noopener">Instagram ↗</a>
+            <a href="https://www.sodiwseries.com/en-gb/drivers/smeets-noah-150609.html" target="_blank" rel="noopener">SWS profiel ↗</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="trophy-strip" aria-label="Podiumplaatsen">
+        {% for trophy in trophies %}
+        <article>
+          <h3>{{ trophy.year }}</h3>
+          <p><span class="medal gold"></span><b>{{ trophy.gold }}</b> goud</p>
+          <p><span class="medal silver"></span><b>{{ trophy.silver }}</b> zilver</p>
+          <p><span class="medal bronze"></span><b>{{ trophy.bronze }}</b> brons</p>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section calendar-section" id="calendar">
+      <div class="section-heading split-heading">
+        <div><p class="eyebrow">Raceplan</p><h2>Kalender {{ season_year }}</h2></div>
+        <p>Van korte sprints tot lange endurance races. Bevestigde en geplande wedstrijden voor dit seizoen.</p>
+      </div>
+      <div class="race-list">
+        {% for race in calendar %}
+        <article class="race-row{% if race == next %} is-next{% endif %}">
+          <time datetime="{{ race.date|date:'Y-m-d' }}"><strong>{{ race.date|date:"d" }}</strong><span>{{ race.date|date:"M" }}</span></time>
+          <div class="race-place"><h3>{{ race.location }}</h3><p>{{ race.country }}</p></div>
+          <div class="race-series"><p>{{ race.championship }}</p><span>{{ race.title }}</span></div>
+          <span class="race-type">{{ race.endurance|yesno:"Endurance,Sprint" }}</span>
+          {% if race.confirmed %}<span class="confirmed">Bevestigd</span>{% else %}<span class="planned">Gepland</span>{% endif %}
+        </article>
+        {% empty %}
+        <p class="empty">De nieuwe racekalender wordt binnenkort bekendgemaakt.</p>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="section gallery-section" id="gallery">
+      <div class="section-heading split-heading">
+        <div><p class="eyebrow">Op het circuit</p><h2>Racebeelden</h2></div>
+        <div class="filters" aria-label="Filter foto's">
+          <button class="active" type="button" data-filter="all">Alles</button>
+          <button type="button" data-filter="2025">2025</button>
+          <button type="button" data-filter="2024">2024</button>
+        </div>
+      </div>
+      <div class="gallery-grid">
+        {% for event in events %}
+        <button class="gallery-card{% if forloop.counter > 18 %} initially-hidden{% endif %}" type="button"
+                data-season="{{ event.season }}"
+                data-full="{% static event.display_path %}"
+                data-caption="{{ event.event }} · {{ event.location }} · {{ event.date|date:'d/m/Y' }}">
+          <img loading="lazy" decoding="async" width="900" height="675"
+               src="{% static event.thumbnail_path %}"
+               alt="{{ event.event }} in {{ event.location }}">
+          <span><b>{{ event.event }}</b><small>{{ event.location }} · {{ event.date|date:"d/m/Y" }}</small></span>
+        </button>
+        {% endfor %}
+      </div>
+      {% if events|length > 18 %}<button class="button load-more" type="button">Meer foto's laden</button>{% endif %}
+    </section>
+
+    <section class="partners" id="sponsors">
+      <div class="section partner-intro">
+        <p class="eyebrow">Samen sneller</p>
+        <h2>Partners maken<br>het verschil.</h2>
+        <p>Elke training, inschrijving en wedstrijddag is teamwork. Dank aan de partners die dit traject mogelijk maken.</p>
+      </div>
+      <div class="partner-grid">
+        <a href="https://yanoa.be" target="_blank" rel="noopener"><img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/yanoa_be-white.webp' %}" alt="YaNoa.be"></a>
+        <a href="https://dechapper.be" target="_blank" rel="noopener"><img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/dechapper_be.webp' %}" alt="De Chapper"></a>
+        <a href="https://www.allard-europe.com" target="_blank" rel="noopener"><img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/allard-white-2018.webp' %}" alt="Allard Europe"></a>
+        <a href="https://www.voltagelightandsound.com" target="_blank" rel="noopener"><img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/logo_voltage.webp' %}" alt="Voltage Light & Sound"></a>
+        <span><img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/logo_es-elektro_badge.webp' %}" alt="ES Elektro"></span>
+      </div>
+      <div class="sponsor-callout section">
+        <div><p class="eyebrow">Sponsoring</p><h3>Zin om mee aan de start te staan?</h3></div>
+        <p>Van naamsvermelding tot een partnership op maat: we bouwen graag een formule die bij jouw merk past.</p>
+        <a class="button button-primary" href="mailto:racing@yanoa.be">Bespreek de mogelijkheden</a>
+      </div>
+    </section>
+
+    <section class="section contact" id="contact">
+      <div><p class="eyebrow">Contact</p><h2>Let’s race.</h2></div>
+      <div class="contact-links">
+        <a href="mailto:racing@yanoa.be"><small>E-mail</small><strong>racing@yanoa.be</strong><span>↗</span></a>
+        <a href="tel:+32476691902"><small>Telefoon</small><strong>+32 476 69 19 02</strong><span>↗</span></a>
+        <a href="https://www.instagram.com/kartingnoah/" target="_blank" rel="noopener"><small>Instagram</small><strong>@kartingnoah</strong><span>↗</span></a>
+      </div>
+    </section>
+  </main>
+
+  <footer><span>© {% now "Y" %} Noah Smeets</span><a href="/admin/">Beheer</a><span>Powered by <a href="https://yanoa.be">YaNoa.be</a></span></footer>
+  <dialog class="lightbox"><button type="button" aria-label="Sluiten">×</button><img alt=""><p></p></dialog>
+</body>
+</html>
