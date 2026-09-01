@@ -416,7 +416,7 @@
 
         {% for event in events|dictsortreversed:"date" %}
         <div class="col-lg-4 col-md-6 portfolio-item filter-{{event.filter}}">
-          <div class="portfolio-img"><img src="{% static event.thumbnail_path %}" class="img-fluid" alt="Noah Smeets" loading="lazy"></div>
+          <div class="portfolio-img"><img src="{% static event.thumbnail_path %}" class="img-fluid" alt="Noah Smeets"></div>
           <div class="portfolio-info">
             <h4>{{event.event}} {{event.season}}</h4>
             <p>{{event.date|date:'d/m'}} {{event.location}}</p>

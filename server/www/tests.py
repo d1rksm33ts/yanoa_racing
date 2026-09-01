@@ -26,6 +26,7 @@ class PublicSiteTests(TestCase):
         self.assertContains(response, "photo.webp")
         self.assertContains(response, 'id="hero"')
         self.assertContains(response, "portfolio-container")
+        self.assertNotContains(response, 'loading="lazy"')
 
     def test_calendar_api_returns_json(self):
         response = self.client.get(reverse("www:calendar"), {"year": self.race.date.year})
