@@ -19,12 +19,20 @@ def index(request):
     today = date.today()
     upcoming = CalendarEvent.objects.filter(date__gte=today).order_by("date", "location")
     season_year = upcoming.values_list("date__year", flat=True).first() or today.year
+    populated_photo_years = sorted(
+        set(ImageEvent.objects.exclude(season="").values_list("season", flat=True)), reverse=True,
+    )
+    photo_years = sorted({str(today.year), *populated_photo_years}, reverse=True)
+    trophies = list(Trophy.objects.order_by("-year"))
     return render(request, "index.html", {
         "calendar": CalendarEvent.objects.filter(date__year=season_year).order_by("date", "location"),
         "events": ImageEvent.objects.filter(Q(image__gt="") | Q(display_image__gt="")).order_by("-date", "-pk"),
         "next": upcoming.first(),
         "season_year": season_year,
-        "trophies": Trophy.objects.order_by("-year"),
+        "photo_years": photo_years,
+        "photo_default_year": populated_photo_years[0] if populated_photo_years else photo_years[0],
+        "trophies_left": trophies[:3],
+        "trophies_right": trophies[3:],
         "website": Website.objects.last(),
     })
 
@@ -52,9 +60,19 @@ def calendar(request):
 
 @login_required
 def manage(request):
+    image_seasons = sorted(
+        {str(date.today().year), *ImageEvent.objects.exclude(season="").values_list("season", flat=True)},
+        reverse=True,
+    )
+    selected_image_season = request.GET.get("photo_year", "")
+    images = ImageEvent.objects.order_by("-date", "-pk")
+    if selected_image_season in image_seasons:
+        images = images.filter(season=selected_image_season)
     return render(request, "management/dashboard.html", {
         "calendar_events": CalendarEvent.objects.order_by("-date", "location"),
-        "images": ImageEvent.objects.order_by("-date", "-pk"),
+        "images": images,
+        "image_seasons": image_seasons,
+        "selected_image_season": selected_image_season,
         "trophies": Trophy.objects.order_by("-year"),
         "website": Website.objects.last(),
     })

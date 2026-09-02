@@ -12,7 +12,7 @@
   </section>
 
   <section class="manage-card" id="images">
-    <div class="card-heading"><div><h2>Foto's</h2><p>Galerijbeelden en wedstrijdinformatie.</p></div><a class="primary action" href="{% url 'www:image-add' %}">Foto toevoegen</a></div>
+    <div class="card-heading"><div><h2>Foto's</h2><p>Galerijbeelden en wedstrijdinformatie.</p></div><div class="card-actions"><form class="manage-filter" method="get" action="{% url 'www:manage' %}#images"><label for="photo-year">Jaar</label><select id="photo-year" name="photo_year" onchange="this.form.submit()"><option value="">Alle jaren</option>{% for year in image_seasons %}<option value="{{ year }}"{% if year == selected_image_season %} selected{% endif %}>{{ year }}</option>{% endfor %}</select></form><a class="primary action" href="{% url 'www:image-add' %}">Foto toevoegen</a></div></div>
     <div class="image-grid">
       {% for image in images %}<article class="image-item"><img src="{{ image.thumbnail_url }}" alt=""><div><strong>{{ image.event|default:"Racefoto" }}</strong><span>{{ image.date|date:"d/m/Y" }} · {{ image.location }}</span><span>Seizoen {{ image.season }}</span></div><div class="row-actions"><a href="{% url 'www:image-edit' image.pk %}">Aanpassen</a><form method="post" action="{% url 'www:image-delete' image.pk %}" onsubmit="return confirm('Deze foto uit de galerij verwijderen?')">{% csrf_token %}<button class="danger" type="submit">Verwijderen</button></form></div></article>
       {% empty %}<p>Nog geen foto's.</p>{% endfor %}

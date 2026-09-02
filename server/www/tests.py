@@ -19,6 +19,9 @@ class PublicSiteTests(TestCase):
         self.user = get_user_model().objects.create_user("editor", password="safe-test-password")
         Website.objects.create(aboutme="<p>Test profile</p>", age="18", weight="66 kg", height="1.87 m")
         Trophy.objects.create(year="2026", gold=1, silver=2, bronze=3)
+        Trophy.objects.create(year="2025", gold=7, silver=6, bronze=2)
+        Trophy.objects.create(year="2024", gold=8, silver=1, bronze=5)
+        Trophy.objects.create(year="2023", gold=1, silver=2, bronze=1)
         self.race = CalendarEvent.objects.create(
             location="Genk", country="BE", date=date.today() + timedelta(days=10),
             championship="SWS", title="Sprint", confirmed=True,
@@ -42,6 +45,10 @@ class PublicSiteTests(TestCase):
         self.assertContains(response, "portfolio-container")
         self.assertNotContains(response, 'loading="lazy"')
         self.assertContains(response, 'href="/beheer/"')
+        self.assertContains(response, 'data-filter=".filter-2026"')
+        self.assertContains(response, 'data-filter=".filter-2025" class="filter-active"')
+        self.assertEqual([item.year for item in response.context["trophies_left"]], ["2026", "2025", "2024"])
+        self.assertEqual([item.year for item in response.context["trophies_right"]], ["2023"])
 
     def test_calendar_api_returns_json(self):
         response = self.client.get(reverse("www:calendar"), {"year": self.race.date.year})
@@ -111,6 +118,28 @@ class PublicSiteTests(TestCase):
         self.assertContains(response, gallery_image.display_url)
         self.assertContains(response, "data-new-photo-image")
         self.assertContains(response, "management.js")
+
+    def test_management_gallery_can_filter_by_year(self):
+        ImageEvent.objects.create(
+            season="2024", filter="2024", image="historic.jpg", location="Spa",
+            event="Historic", date=date(2024, 7, 1),
+        )
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("www:manage"), {"photo_year": "2025"})
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "SWS")
+        self.assertNotContains(response, "Historic")
+        self.assertEqual(response.context["selected_image_season"], "2025")
+        self.assertEqual(response.context["image_seasons"], ["2026", "2025", "2024"])
+
+    def test_current_photo_year_becomes_default_after_first_upload(self):
+        ImageEvent.objects.create(
+            season="2026", filter="2026", image="new-season.jpg", location="Genk",
+            event="New season", date=date(2026, 2, 1),
+        )
+        response = self.client.get(reverse("www:index"))
+        self.assertEqual(response.context["photo_default_year"], "2026")
+        self.assertContains(response, 'data-filter=".filter-2026" class="filter-active"')
 
     def test_editor_can_update_trophies_and_about_me(self):
         self.client.force_login(self.user)

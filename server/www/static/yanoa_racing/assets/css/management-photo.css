@@ -49,3 +49,39 @@
     height: 240px;
   }
 }
+
+.card-actions,
+.manage-filter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.manage-filter label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.manage-filter select {
+  min-width: 115px;
+  padding: 9px 30px 9px 11px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+@media (max-width: 640px) {
+  .card-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .manage-filter select,
+  .card-actions .action {
+    width: 100%;
+  }
+}

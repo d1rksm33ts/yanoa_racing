@@ -1,0 +1,30 @@
+.about .content .trophy-columns {
+  width: 100%;
+}
+
+.about .content .trophy-year {
+  display: flex;
+  align-items: stretch;
+}
+
+.about .content .trophy-year .count-box {
+  width: 25%;
+  min-width: 0;
+}
+
+.about .content .trophy-label {
+  display: flex;
+  align-items: flex-start;
+}
+
+@media (max-width: 575px) {
+  .about .content .trophy-year .count-box i,
+  .about .content .trophy-year .count-box span {
+    font-size: 28px;
+  }
+
+  .about .content .trophy-year .count-box span,
+  .about .content .trophy-year .count-box p {
+    margin-left: 39px;
+  }
+}
