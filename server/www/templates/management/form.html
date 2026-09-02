@@ -6,7 +6,7 @@
     <h1>{{ title }}</h1>
     <p>{{ description }}</p>
     {% if form.photo %}
-    <div class="photo-comparison" data-photo-comparison>
+    <div class="photo-comparison" data-photo-comparison data-input-id="{{ form.photo.id_for_label }}">
       {% if form.instance.pk %}<figure><figcaption>Huidige foto</figcaption><div class="photo-frame"><img src="{{ form.instance.display_url }}" alt="Huidige foto"></div></figure>{% endif %}
       <figure class="new-photo-preview" data-new-photo-preview hidden><figcaption>Nieuwe foto</figcaption><div class="photo-frame"><img data-new-photo-image alt="Voorbeeld van de nieuwe foto"></div></figure>
     </div>

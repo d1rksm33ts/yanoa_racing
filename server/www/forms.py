@@ -94,3 +94,47 @@ class WebsiteForm(forms.ModelForm):
         fields = ("aboutme", "age", "weight", "height")
         labels = {"aboutme": "About Me", "age": "Leeftijd", "weight": "Gewicht", "height": "Lengte"}
         widgets = {"aboutme": forms.Textarea(attrs={"rows": 14})}
+
+
+class WebsiteImagesForm(forms.ModelForm):
+    hero_upload = forms.ImageField(required=False, label="Hoofdfoto")
+    about_upload = forms.ImageField(required=False, label="About Me-foto")
+    sponsors_upload = forms.ImageField(required=False, label="Achtergrond sponsoring")
+
+    image_fields = {
+        "hero_upload": ("hero_image", "hero", (2560, 1800)),
+        "about_upload": ("about_image", "about", (1600, 2200)),
+        "sponsors_upload": ("sponsors_image", "sponsors", (2560, 1800)),
+    }
+
+    class Meta:
+        model = Website
+        fields = ()
+
+    def clean(self):
+        cleaned = super().clean()
+        for field_name in self.image_fields:
+            photo = cleaned.get(field_name)
+            if photo and photo.size > 20 * 1024 * 1024:
+                self.add_error(field_name, "De foto mag maximaal 20 MB groot zijn.")
+        return cleaned
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        old_files = []
+        for upload_name, (model_name, filename_prefix, max_size) in self.image_fields.items():
+            photo = self.cleaned_data.get(upload_name)
+            if not photo:
+                continue
+            current = getattr(instance, model_name)
+            if current:
+                old_files.append(current.name)
+            filename = f"{filename_prefix}-{uuid4().hex[:12]}.webp"
+            processed = GalleryImageForm._webp(Image.open(photo), max_size, 88)
+            getattr(instance, model_name).save(filename, processed, save=False)
+        if commit:
+            instance.save()
+            storage = instance.hero_image.storage
+            for old_file in old_files:
+                storage.delete(old_file)
+        return instance

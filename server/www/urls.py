@@ -22,6 +22,7 @@ urlpatterns = [
     path("beheer/trofeeen/<int:pk>/", views.trophy_edit, name="trophy-edit"),
     path("beheer/trofeeen/<int:pk>/verwijderen/", views.trophy_delete, name="trophy-delete"),
     path("beheer/over-mij/", views.website_edit, name="website-edit"),
+    path("beheer/websitefotos/", views.website_images_edit, name="website-images"),
     path("media/<path:path>", views.media, name="media"),
     path("health/", views.health, name="health"),
     path("googlebfb2a3256d6cae08.html", views.google, name="site-verification"),

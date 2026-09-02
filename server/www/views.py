@@ -12,7 +12,7 @@ from django.urls import reverse
 from django.views.decorators.cache import cache_control
 from django.views.decorators.http import require_POST
 
-from .forms import CalendarEventForm, GalleryImageForm, TrophyForm, WebsiteForm
+from .forms import CalendarEventForm, GalleryImageForm, TrophyForm, WebsiteForm, WebsiteImagesForm
 from .models import CalendarEvent, ImageEvent, Trophy, Website
 
 def index(request):
@@ -164,6 +164,25 @@ def website_edit(request):
         "Pas de profieltekst en de gegevens naast de foto aan.",
         "About Me is opgeslagen.", "#about",
     )
+
+
+@login_required
+def website_images_edit(request):
+    website = Website.objects.last() or Website.objects.create(aboutme="")
+    if request.method == "POST":
+        form = WebsiteImagesForm(request.POST, request.FILES, instance=website)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "De websitefoto's zijn opgeslagen.")
+            return redirect(f"{reverse('www:manage')}#site-images")
+    else:
+        form = WebsiteImagesForm(instance=website)
+    comparisons = (
+        {"field": form["hero_upload"], "current_url": website.hero_image_url, "hint": "Bovenaan de hoofdpagina"},
+        {"field": form["about_upload"], "current_url": website.about_image_url, "hint": "Naast de About Me-tekst"},
+        {"field": form["sponsors_upload"], "current_url": website.sponsors_image_url, "hint": "Achter de sponsorlogo's"},
+    )
+    return render(request, "management/site_images.html", {"form": form, "comparisons": comparisons})
 
 
 @cache_control(public=True, max_age=31536000, immutable=True)

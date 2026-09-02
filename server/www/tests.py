@@ -46,6 +46,9 @@ class PublicSiteTests(TestCase):
         self.assertContains(response, 'data-default-filter=".filter-2025"')
         self.assertNotContains(response, 'loading="lazy"')
         self.assertContains(response, 'href="/beheer/"')
+        self.assertContains(response, "hero-bg.jpg")
+        self.assertContains(response, "me.jpg")
+        self.assertContains(response, "testimonials-bg.jpg")
         self.assertContains(response, 'data-filter=".filter-2026"')
         self.assertContains(response, 'data-filter=".filter-2025" class="filter-active"')
         self.assertEqual([item.year for item in response.context["trophies_left"]], ["2026", "2025", "2024"])
@@ -160,6 +163,26 @@ class PublicSiteTests(TestCase):
         self.assertRedirects(response, f"{reverse('www:manage')}#about")
         website.refresh_from_db()
         self.assertEqual(website.aboutme, "<p>Updated profile</p>")
+
+    def test_editor_can_compare_and_replace_website_images(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse("www:website-images"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Hoofdfoto")
+        self.assertContains(response, "About Me-foto")
+        self.assertContains(response, "Achtergrond sponsoring")
+        self.assertEqual(response.content.count(b"data-photo-comparison"), 3)
+
+        image_data = BytesIO()
+        Image.new("RGB", (1800, 1200), "#282b30").save(image_data, "JPEG")
+        upload = SimpleUploadedFile("new-hero.jpg", image_data.getvalue(), content_type="image/jpeg")
+        response = self.client.post(reverse("www:website-images"), {"hero_upload": upload})
+        self.assertRedirects(response, f"{reverse('www:manage')}#site-images")
+        website = Website.objects.last()
+        self.assertTrue(website.hero_image.name.endswith(".webp"))
+        self.assertTrue(website.hero_image.storage.exists(website.hero_image.name))
+        self.assertIn("/media/site/hero-", website.hero_image_url)
+        self.assertIn("/static/", website.about_image_url)
 
     def test_destructive_editor_actions_are_post_only(self):
         self.client.force_login(self.user)

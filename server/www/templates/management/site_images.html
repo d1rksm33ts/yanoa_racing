@@ -1,0 +1,23 @@
+{% extends "management/base.html" %}
+{% block title %}Websitefoto's aanpassen{% endblock %}
+{% block content %}
+  <section class="manage-card site-images-form">
+    <p class="eyebrow">Websitebeheer</p>
+    <h1>Websitefoto's aanpassen</h1>
+    <p>Kies alleen de foto's die je wilt vervangen. Controleer de nieuwe foto naast de huidige versie en klik daarna op Opslaan.</p>
+    {{ form.non_field_errors }}
+    <form method="post" enctype="multipart/form-data" class="manage-form">{% csrf_token %}
+      {% for comparison in comparisons %}
+      <section class="site-image-editor">
+        <div class="site-image-heading"><div><h2>{{ comparison.field.label }}</h2><p>{{ comparison.hint }}</p></div>{{ comparison.field }}</div>
+        {% if comparison.field.errors %}<div class="field-error">{{ comparison.field.errors|striptags }}</div>{% endif %}
+        <div class="photo-comparison" data-photo-comparison data-input-id="{{ comparison.field.id_for_label }}">
+          <figure><figcaption>Huidige foto</figcaption><div class="photo-frame"><img src="{{ comparison.current_url }}" alt="Huidige {{ comparison.field.label|lower }}"></div></figure>
+          <figure class="new-photo-preview" data-new-photo-preview hidden><figcaption>Nieuwe foto</figcaption><div class="photo-frame"><img data-new-photo-image alt="Voorbeeld van de nieuwe foto"></div></figure>
+        </div>
+      </section>
+      {% endfor %}
+      <div class="form-actions"><button class="primary" type="submit">Opslaan</button><a href="{% url 'www:manage' %}#site-images">Annuleren</a></div>
+    </form>
+  </section>
+{% endblock %}

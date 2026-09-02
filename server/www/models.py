@@ -56,6 +56,21 @@ class Website(models.Model):
     age = models.CharField(max_length=2, default='16')
     weight = models.CharField(max_length=6, default='65 kg')
     height = models.CharField(max_length=6, default='1.84 m')
+    hero_image = models.ImageField(upload_to="site/", blank=True)
+    about_image = models.ImageField(upload_to="site/", blank=True)
+    sponsors_image = models.ImageField(upload_to="site/", blank=True)
+
+    @property
+    def hero_image_url(self):
+        return self.hero_image.url if self.hero_image else static("yanoa_racing/assets/img/hero-bg.jpg")
+
+    @property
+    def about_image_url(self):
+        return self.about_image.url if self.about_image else static("yanoa_racing/assets/img/me.jpg")
+
+    @property
+    def sponsors_image_url(self):
+        return self.sponsors_image.url if self.sponsors_image else static("yanoa_racing/assets/img/testimonials-bg.jpg")
 
     def __str__(self):
         return "Website profile"
