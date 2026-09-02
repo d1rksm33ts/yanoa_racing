@@ -350,7 +350,7 @@
         {% for year in photo_years %}<li data-filter=".filter-{{ year }}"{% if year == photo_default_year %} class="filter-active"{% endif %}>{{ year }}</li>{% endfor %}
       </ul>
 
-      <div class="row portfolio-container">
+      <div class="row portfolio-container" data-default-filter=".filter-{{ photo_default_year }}">
 
         <div class="col-lg-4 col-md-6 portfolio-item filter-2025">
           <div class="portfolio-img"><img src="{% static 'yanoa_racing/assets/img/display/season-2025/_K8A6924.webp' %}" class="img-fluid" alt="Noah Smeets"></div>
@@ -681,22 +681,6 @@
         return {}; // No styling for other rows
       }
   }
-
-  window.addEventListener('load', function () {
-    var iso = new Isotope('.portfolio-container', {
-      itemSelector: '.portfolio-item',
-      layoutMode: 'fitRows'
-    });
-
-    // Trigger the filter to show only the latest season
-    iso.arrange({ filter: '.filter-{{ photo_default_year }}' });
-
-    // Update active class on filter buttons
-    document.querySelectorAll('#portfolio-flters li').forEach(function (el) {
-      el.classList.remove('filter-active');
-    });
-    document.querySelector('#portfolio-flters li[data-filter=".filter-{{ photo_default_year }}"]').classList.add('filter-active');
-  });
 
 </script>
 

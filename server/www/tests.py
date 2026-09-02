@@ -43,6 +43,7 @@ class PublicSiteTests(TestCase):
         self.assertContains(response, "photo.webp")
         self.assertContains(response, 'id="hero"')
         self.assertContains(response, "portfolio-container")
+        self.assertContains(response, 'data-default-filter=".filter-2025"')
         self.assertNotContains(response, 'loading="lazy"')
         self.assertContains(response, 'href="/beheer/"')
         self.assertContains(response, 'data-filter=".filter-2026"')
@@ -140,6 +141,7 @@ class PublicSiteTests(TestCase):
         response = self.client.get(reverse("www:index"))
         self.assertEqual(response.context["photo_default_year"], "2026")
         self.assertContains(response, 'data-filter=".filter-2026" class="filter-active"')
+        self.assertContains(response, 'data-default-filter=".filter-2026"')
 
     def test_editor_can_update_trophies_and_about_me(self):
         self.client.force_login(self.user)
