@@ -5,6 +5,12 @@
     <p class="eyebrow">Websitebeheer</p>
     <h1>{{ title }}</h1>
     <p>{{ description }}</p>
+    {% if form.photo %}
+    <div class="photo-comparison" data-photo-comparison>
+      {% if form.instance.pk %}<figure><figcaption>Huidige foto</figcaption><div class="photo-frame"><img src="{{ form.instance.display_url }}" alt="Huidige foto"></div></figure>{% endif %}
+      <figure class="new-photo-preview" data-new-photo-preview hidden><figcaption>Nieuwe foto</figcaption><div class="photo-frame"><img data-new-photo-image alt="Voorbeeld van de nieuwe foto"></div></figure>
+    </div>
+    {% endif %}
     {{ form.non_field_errors }}
     <form method="post" enctype="multipart/form-data" class="manage-form">{% csrf_token %}
       {% for field in form %}<div class="form-field{% if field.field.widget.input_type == 'checkbox' %} checkbox-field{% endif %}">{% if field.field.widget.input_type == 'checkbox' %}{{ field }} <label for="{{ field.id_for_label }}">{{ field.label }}</label>{% else %}<label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% endif %}{% if field.help_text %}<small>{{ field.help_text }}</small>{% endif %}{% if field.errors %}<div class="field-error">{{ field.errors|striptags }}</div>{% endif %}</div>{% endfor %}

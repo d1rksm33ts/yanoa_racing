@@ -101,6 +101,17 @@ class PublicSiteTests(TestCase):
         self.assertEqual(media_response.status_code, 200)
         self.assertEqual(media_response["Content-Type"], "image/webp")
 
+    def test_photo_editor_shows_current_and_new_photo_comparison(self):
+        self.client.force_login(self.user)
+        gallery_image = ImageEvent.objects.get(image="photo.jpg")
+        response = self.client.get(reverse("www:image-edit", args=[gallery_image.pk]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Huidige foto")
+        self.assertContains(response, "Nieuwe foto")
+        self.assertContains(response, gallery_image.display_url)
+        self.assertContains(response, "data-new-photo-image")
+        self.assertContains(response, "management.js")
+
     def test_editor_can_update_trophies_and_about_me(self):
         self.client.force_login(self.user)
         trophy = Trophy.objects.get(year="2026")

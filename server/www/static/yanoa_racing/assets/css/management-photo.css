@@ -1,0 +1,51 @@
+.photo-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin: 6px 0 26px;
+}
+
+.photo-comparison figure {
+  min-width: 0;
+  margin: 0;
+}
+
+.photo-comparison figcaption {
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.photo-frame {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  height: 280px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  background: #202226;
+}
+
+.photo-frame img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.new-photo-preview[hidden] {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .photo-comparison {
+    grid-template-columns: 1fr;
+  }
+
+  .photo-frame {
+    height: 240px;
+  }
+}
