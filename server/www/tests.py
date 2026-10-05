@@ -44,15 +44,45 @@ class PublicSiteTests(TestCase):
         self.assertContains(response, 'id="hero"')
         self.assertContains(response, "portfolio-container")
         self.assertContains(response, 'data-default-filter=".filter-2025"')
-        self.assertNotContains(response, 'loading="lazy"')
+        self.assertContains(response, 'loading="lazy"')
         self.assertContains(response, 'href="/beheer/"')
-        self.assertContains(response, "hero-bg.jpg")
-        self.assertContains(response, "me.jpg")
-        self.assertContains(response, "testimonials-bg.jpg")
+        self.assertContains(response, "hero-bg.webp")
+        self.assertContains(response, "me.webp")
+        self.assertContains(response, "testimonials-bg.webp")
         self.assertContains(response, 'data-filter=".filter-2026"')
         self.assertContains(response, 'data-filter=".filter-2025" class="filter-active"')
         self.assertEqual([item.year for item in response.context["trophies_left"]], ["2026", "2025", "2024"])
         self.assertEqual([item.year for item in response.context["trophies_right"]], ["2023"])
+
+    def test_first_paint_does_not_depend_on_external_assets_or_parser_blocking_scripts(self):
+        from html.parser import HTMLParser
+
+        class Assets(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.scripts = []
+                self.styles = []
+
+            def handle_starttag(self, tag, attrs):
+                attrs = dict(attrs)
+                if tag == "script" and "src" in attrs:
+                    self.scripts.append(attrs)
+                if tag == "link" and attrs.get("rel") == "stylesheet":
+                    self.styles.append(attrs)
+
+        response = self.client.get(reverse("www:index"))
+        html = response.content.decode()
+        assets = Assets()
+        assets.feed(html)
+        self.assertTrue(assets.scripts)
+        self.assertTrue(all("defer" in script for script in assets.scripts))
+        self.assertTrue(all(asset.get("src", asset.get("href", "")).startswith("/static/")
+                            for asset in assets.scripts + assets.styles))
+        self.assertEqual(sum("jquery" in script["src"] for script in assets.scripts), 1)
+        self.assertContains(response, 'id="site-loading"')
+        self.assertContains(response, 'role="status"')
+        self.assertLess(html.index("#site-loading"), html.index('rel="stylesheet"'))
+        self.assertContains(response, 'rel="preload" as="image"')
 
     def test_calendar_api_returns_json(self):
         response = self.client.get(reverse("www:calendar"), {"year": self.race.date.year})

@@ -1,0 +1,32 @@
+{# This must precede every network-dependent stylesheet and script. #}
+<style>
+  html, body { margin:0; background:#13181e; }
+  body { font-family:system-ui,sans-serif; }
+  #hero { min-height:100vh; position:relative; background-color:#13181e; background-size:cover; background-position:top right; }
+  #hero .hero-container { min-height:100vh; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white; }
+  #hero h1 { margin:0 0 12px; font-size:48px; }
+  #hero h2 { font-size:20px; }
+  #site-loading { display:none; position:fixed; inset:0; z-index:10000; background:#13181e; color:#fff; align-items:center; justify-content:center; flex-direction:column; gap:16px; text-align:center; padding:24px; font:16px/1.5 system-ui,sans-serif; }
+  #site-loading strong { font-size:28px; }
+  #site-loading span { color:#bbc3ce; }
+  #site-loading .loading-ring { width:28px; height:28px; border:3px solid #3a414c; border-top-color:#ffb727; border-radius:50%; animation:startup-spin .8s linear infinite; }
+  html.racing-booting #site-loading { display:flex; }
+  html.racing-booting body { overflow:hidden; }
+  @keyframes startup-spin { to { transform:rotate(360deg); } }
+  @media (prefers-reduced-motion:reduce) { #site-loading .loading-ring { animation:none; } }
+</style>
+<script>
+  // Only the three core stylesheets gate the styled page. Images, fonts and JS
+  // never gate this screen. A failed stylesheet cannot leave an endless loader.
+  document.documentElement.classList.add('racing-booting');
+  (() => {
+    let pending = 3;
+    const finish = () => {
+      document.documentElement.classList.remove('racing-booting');
+      window.dispatchEvent(new Event('racing:styled'));
+      if (!performance.getEntriesByName('racing-styled').length) performance.mark('racing-styled');
+    };
+    const deadline = setTimeout(finish, 5000);
+    window.racingStyleReady = () => { if (--pending <= 0) { clearTimeout(deadline); finish(); } };
+  })();
+</script>

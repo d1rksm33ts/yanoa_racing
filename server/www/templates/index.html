@@ -11,33 +11,58 @@
   <meta content="Noah Smeets" name="description">
   <meta content="karting, racing, Noah Smeets, Formula Karting, VD Racing Team, SWS, SODIWSERIES, De Chapper, Voltage Light and Sound, Allard Europe" name="keywords">
 
+  {% include 'partials/startup.html' %}
+  <link rel="preload" as="image" href="{{ website.hero_image_url }}" fetchpriority="high">
+
   <!-- Favicons -->
   <link href="{% static 'yanoa_racing/assets/img/favicon.png' %}" rel="icon">
   <link href="{% static 'yanoa_racing/assets/img/apple-touch-icon.png' %}" rel="apple-touch-icon">
 
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Raleway:300,300i,400,400i,500,500i,600,600i,700,700i|Satisfy" rel="stylesheet">
+  <!-- All assets are served locally; optional styles never block first paint. -->
+  <link href="{% static 'yanoa_racing/assets/css/fonts.css' %}" rel="stylesheet" media="print" onload="this.media='all'">
 
   <!-- Vendor CSS Files -->
-  <link href="{% static 'yanoa_racing/assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
-  <link href="{% static 'yanoa_racing/assets/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
-  <link href="{% static 'yanoa_racing/assets/vendor/boxicons/css/boxicons.min.css' %}" rel="stylesheet">
-  <link href="{% static 'yanoa_racing/assets/vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet">
-  <link href="{% static 'yanoa_racing/assets/vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet">
+  <link rel="preload" as="style" href="{% static 'yanoa_racing/assets/vendor/bootstrap/css/bootstrap.min.css' %}">
+  <link href="{% static 'yanoa_racing/assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet" media="print" onload="this.media='all';racingStyleReady()" onerror="racingStyleReady()">
+  <link href="{% static 'yanoa_racing/assets/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet" media="print" onload="this.media='all'">
+  <link href="{% static 'yanoa_racing/assets/vendor/boxicons/css/boxicons.min.css' %}" rel="stylesheet" media="print" onload="this.media='all'">
+  <link href="{% static 'yanoa_racing/assets/vendor/glightbox/css/glightbox.min.css' %}" rel="stylesheet" media="print" onload="this.media='all'">
+  <link href="{% static 'yanoa_racing/assets/vendor/swiper/swiper-bundle.min.css' %}" rel="stylesheet" media="print" onload="this.media='all'">
 
   <!-- Template Main CSS File -->
-  <link href="{% static 'yanoa_racing/assets/css/style.css' %}" rel="stylesheet">
-  <link href="{% static 'yanoa_racing/assets/css/content-layout.css' %}" rel="stylesheet">
+  <link rel="preload" as="style" href="{% static 'yanoa_racing/assets/css/style.css' %}">
+  <link href="{% static 'yanoa_racing/assets/css/style.css' %}" rel="stylesheet" media="print" onload="this.media='all';racingStyleReady()" onerror="racingStyleReady()">
+  <link rel="preload" as="style" href="{% static 'yanoa_racing/assets/css/content-layout.css' %}">
+  <link href="{% static 'yanoa_racing/assets/css/content-layout.css' %}" rel="stylesheet" media="print" onload="this.media='all';racingStyleReady()" onerror="racingStyleReady()">
 
   <!--  <link rel="stylesheet" href="{% static 'yanoa_racing/assets/css/dataTables.dataTables.css' %}" />-->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-table@1.24.0/dist/bootstrap-table.min.css">
+  <link href="{% static 'yanoa_racing/assets/vendor/bootstrap-table/bootstrap-table.min.css' %}" rel="stylesheet" media="print" onload="this.media='all'">
 
-  <script src="{% static 'yanoa_racing/assets/js/jquery-3.7.1.min.js' %}"></script>
+  <script defer src="{% static 'yanoa_racing/assets/js/jquery-3.7.1.min.js' %}"></script>
   <!--  <script src="{% static 'yanoa_racing/assets/js/dataTables.js' %}"></script>-->
 
+  <noscript>
+    <style>
+      .about .image { background-image:url('{{ website.about_image_url }}'); }
+      #sponsors { background-image:url('{{ website.sponsors_image_url }}'); }
+      #footer { background-image:url('{% static 'yanoa_racing/assets/img/footer-bg.webp' %}'); }
+    </style>
+    <link href="{% static 'yanoa_racing/assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+    <link href="{% static 'yanoa_racing/assets/css/style.css' %}" rel="stylesheet">
+    <link href="{% static 'yanoa_racing/assets/css/content-layout.css' %}" rel="stylesheet">
+    <link href="{% static 'yanoa_racing/assets/css/fonts.css' %}" rel="stylesheet">
+    <link href="{% static 'yanoa_racing/assets/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+    <link href="{% static 'yanoa_racing/assets/vendor/boxicons/css/boxicons.min.css' %}" rel="stylesheet">
+  </noscript>
 </head>
 
 <body>
+
+<div id="site-loading" role="status" aria-live="polite">
+  <strong>Noah Smeets</strong>
+  <div class="loading-ring" aria-hidden="true"></div>
+  <span>Website wordt geladen…</span>
+</div>
 
 <!-- ======= Header ======= -->
 <header id="header" class="fixed-top d-flex justify-content-center align-items-center header-transparent">
@@ -90,7 +115,7 @@
       </div>
 
       <div class="row">
-        <div class="image col-lg-4 d-flex align-items-stretch justify-content-center justify-content-lg-start" style="background-image: url('{{ website.about_image_url }}');"></div>
+        <div class="image col-lg-4 d-flex align-items-stretch justify-content-center justify-content-lg-start" data-background-image="{{ website.about_image_url }}"></div>
         <div class="col-lg-8 d-flex flex-column align-items-stretch">
           <div class="content ps-lg-4 d-flex flex-column justify-content-center">
             <div class="row">
@@ -195,7 +220,7 @@
 
   <!-- ======= Testimonials Section ======= -->
   <!--    <section id="testimonials" class="testimonials">-->
-  <section id="sponsors" class="testimonials" style="background-image: url('{{ website.sponsors_image_url }}');">
+  <section id="sponsors" class="testimonials" data-background-image="{{ website.sponsors_image_url }}">
     <div class="section-title">
       <!--        <span>Sponsors</span>-->
       <h2 style="color: white">Sponsors</h2>
@@ -209,7 +234,7 @@
           <div class="swiper-slide">
             <div class="testimonial-item">
               <a href="https://yanoa.be" target="_blank">
-                <img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/yanoa_be-white.webp' %}" class="testimonial-img2" style="background-color: rgba(255, 255, 255, 0.0)" alt="YANOA.BE">
+                <img loading="lazy" decoding="async" fetchpriority="low" src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/yanoa_be-white.webp' %}" class="testimonial-img2" style="background-color: rgba(255, 255, 255, 0.0)" alt="YANOA.BE">
               </a>
               <p>
                 <i class="bx bxs-quote-alt-left quote-icon-left"></i>
@@ -222,7 +247,7 @@
           <div class="swiper-slide">
             <div class="testimonial-item">
               <a href="https://dechapper.be" target="_blank">
-                <img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/dechapper_be.webp' %}" class="testimonial-img2" style="background-color: rgba(54, 74, 122, 0.5)" alt="DECHAPPER">
+                <img loading="lazy" decoding="async" fetchpriority="low" src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/dechapper_be.webp' %}" class="testimonial-img2" style="background-color: rgba(54, 74, 122, 0.5)" alt="DECHAPPER">
               </a>
               <p>
                 <i class="bx bxs-quote-alt-left quote-icon-left"></i>
@@ -235,7 +260,7 @@
           <div class="swiper-slide">
             <div class="testimonial-item">
               <a href="https://www.allard-europe.com" target="_blank">
-                <img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/allard-white-2018.webp' %}" class="testimonial-img2" alt="ALLARD EUROPE" style="background-color: rgba(0, 0, 0, 0.0)">
+                <img loading="lazy" decoding="async" fetchpriority="low" src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/allard-white-2018.webp' %}" class="testimonial-img2" alt="ALLARD EUROPE" style="background-color: rgba(0, 0, 0, 0.0)">
               </a>
               <p>
                 <i class="bx bxs-quote-alt-left quote-icon-left"></i>
@@ -248,7 +273,7 @@
           <div class="swiper-slide">
             <div class="testimonial-item">
               <a href="https://www.voltagelightandsound.com" target="_blank">
-                <img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/logo_voltage.webp' %}" class="testimonial-img2" alt="VOLTAGE LIGHT AND SOUND" style="background-color: rgba(0, 0, 0, 0.5)">
+                <img loading="lazy" decoding="async" fetchpriority="low" src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/logo_voltage.webp' %}" class="testimonial-img2" alt="VOLTAGE LIGHT AND SOUND" style="background-color: rgba(0, 0, 0, 0.5)">
                 <!--                  <h3>Voltage Light & Sound </h3>-->
               </a>
               <!--                    <h4>Kobe Schepers</h4>-->
@@ -263,7 +288,7 @@
           <div class="swiper-slide">
             <div class="testimonial-item">
               <a href="#" target="">
-                <img src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/logo_es-elektro_badge.webp' %}" class="testimonial-img2" alt="STEF ENGELEN ESELECTRO" style="background-color: rgba(255, 255, 255, 0.5)">
+                <img loading="lazy" decoding="async" fetchpriority="low" src="{% static 'yanoa_racing/assets/img/display/season-2024/sponsor/logo_es-elektro_badge.webp' %}" class="testimonial-img2" alt="STEF ENGELEN ESELECTRO" style="background-color: rgba(255, 255, 255, 0.5)">
               </a>
               <p>
                 <i class="bx bxs-quote-alt-left quote-icon-left"></i>
@@ -353,7 +378,7 @@
       <div class="row portfolio-container" data-default-filter=".filter-{{ photo_default_year }}">
 
         <div class="col-lg-4 col-md-6 portfolio-item filter-2025">
-          <div class="portfolio-img"><img src="{% static 'yanoa_racing/assets/img/display/season-2025/_K8A6924.webp' %}" class="img-fluid" alt="Noah Smeets"></div>
+          <div class="portfolio-img"><img loading="lazy" decoding="async" fetchpriority="low" src="{% static 'yanoa_racing/assets/img/thumbs/season-2025/_K8A6924.webp' %}" class="img-fluid" alt="Noah Smeets"></div>
           <div class="portfolio-info">
             <h4>Noah Smeets</h4>
             <p>2025</p>
@@ -363,7 +388,7 @@
 
         {% for event in events|dictsortreversed:"date" %}
         <div class="col-lg-4 col-md-6 portfolio-item filter-{{event.filter}}">
-          <div class="portfolio-img"><img src="{{ event.thumbnail_url }}" class="img-fluid" alt="Noah Smeets"></div>
+          <div class="portfolio-img"><img loading="lazy" decoding="async" fetchpriority="low" src="{{ event.thumbnail_url }}" class="img-fluid" alt="Noah Smeets"></div>
           <div class="portfolio-info">
             <h4>{{event.event}} {{event.season}}</h4>
             <p>{{event.date|date:'d/m'}} {{event.location}}</p>
@@ -610,7 +635,7 @@
 </main><!-- End #main -->
 
 <!-- ======= Footer ======= -->
-<footer id="footer">
+<footer id="footer" data-background-image="{% static 'yanoa_racing/assets/img/footer-bg.webp' %}">
   <div class="container">
     <h3>Noah Smeets</h3>
     <p>Kart Racer</p>
@@ -631,19 +656,18 @@
 <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
 
 <!-- Vendor JS Files -->
-<script src="{% static 'yanoa_racing/assets/vendor/purecounter/purecounter_vanilla.js' %}"></script>
-<script src="{% static 'yanoa_racing/assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
-<script src="{% static 'yanoa_racing/assets/vendor/glightbox/js/glightbox.min.js' %}"></script>
-<script src="{% static 'yanoa_racing/assets/vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
-<script src="{% static 'yanoa_racing/assets/vendor/swiper/swiper-bundle.min.js' %}"></script>
-<script src="{% static 'yanoa_racing/assets/vendor/waypoints/noframework.waypoints.js' %}"></script>
-<script src="{% static 'yanoa_racing/assets/vendor/php-email-form/validate.js' %}"></script>
+<script defer src="{% static 'yanoa_racing/assets/vendor/purecounter/purecounter_vanilla.js' %}"></script>
+<script defer src="{% static 'yanoa_racing/assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script defer src="{% static 'yanoa_racing/assets/vendor/glightbox/js/glightbox.min.js' %}"></script>
+<script defer src="{% static 'yanoa_racing/assets/vendor/isotope-layout/isotope.pkgd.min.js' %}"></script>
+<script defer src="{% static 'yanoa_racing/assets/vendor/swiper/swiper-bundle.min.js' %}"></script>
+<script defer src="{% static 'yanoa_racing/assets/vendor/waypoints/noframework.waypoints.js' %}"></script>
+<script defer src="{% static 'yanoa_racing/assets/vendor/php-email-form/validate.js' %}"></script>
 
 <!-- Template Main JS File -->
-<script src="{% static 'yanoa_racing/assets/js/main.js' %}"></script>
+<script defer src="{% static 'yanoa_racing/assets/js/main.js' %}"></script>
 
-<script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap-table@1.24.0/dist/bootstrap-table.min.js"></script>
+<script defer src="{% static 'yanoa_racing/assets/vendor/bootstrap-table/bootstrap-table.min.js' %}"></script>
 
 <script>
 

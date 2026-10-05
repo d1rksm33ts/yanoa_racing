@@ -9,6 +9,25 @@
 (function() {
   "use strict";
 
+  // CSS backgrounds below the fold must not compete with the hero and scripts.
+  const backgrounds = document.querySelectorAll('[data-background-image]');
+  const loadBackground = element => {
+    element.style.backgroundImage = `url(${JSON.stringify(element.dataset.backgroundImage)})`;
+  };
+  if ('IntersectionObserver' in window) {
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          loadBackground(entry.target);
+          observer.unobserve(entry.target);
+        }
+      });
+    });
+    backgrounds.forEach(element => observer.observe(element));
+  } else {
+    backgrounds.forEach(loadBackground);
+  }
+
   /**
    * Easy selector helper function
    */
@@ -152,7 +171,7 @@
   /**
    * Scroll with ofset on page load with hash links in the url
    */
-  window.addEventListener('load', () => {
+  document.addEventListener('DOMContentLoaded', () => {
     if (window.location.hash) {
       if (select(window.location.hash)) {
         scrollto(window.location.hash)
@@ -198,13 +217,28 @@
   /**
    * Porfolio isotope and filter
    */
-  window.addEventListener('load', () => {
+  // Deferred scripts already run after parsing. Do not wait for every image
+  // on the page before making gallery filters usable.
+  (() => {
     let portfolioContainer = select('.portfolio-container');
     if (portfolioContainer) {
       let portfolioIsotope = new Isotope(portfolioContainer, {
         itemSelector: '.portfolio-item',
         layoutMode: 'fitRows',
         filter: portfolioContainer.dataset.defaultFilter || '*'
+      });
+
+      let layoutFrame;
+      const updateLayout = () => {
+        cancelAnimationFrame(layoutFrame);
+        layoutFrame = requestAnimationFrame(() => portfolioIsotope.layout());
+      };
+      window.addEventListener('racing:styled', updateLayout);
+      // Native lazy images acquire their intrinsic size after appearing.
+      // Relayout the visible items rather than disabling lazy loading.
+      portfolioContainer.querySelectorAll('img').forEach(image => {
+        image.addEventListener('load', updateLayout);
+        image.addEventListener('error', updateLayout);
       });
 
       let portfolioFilters = select('#portfolio-flters li', true);
@@ -223,7 +257,7 @@
       }, true);
     }
 
-  });
+  })();
 
   /**
    * Initiate portfolio lightbox

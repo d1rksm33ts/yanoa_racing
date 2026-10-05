@@ -62,15 +62,15 @@ class Website(models.Model):
 
     @property
     def hero_image_url(self):
-        return self.hero_image.url if self.hero_image else static("yanoa_racing/assets/img/hero-bg.jpg")
+        return self.hero_image.url if self.hero_image else static("yanoa_racing/assets/img/hero-bg.webp")
 
     @property
     def about_image_url(self):
-        return self.about_image.url if self.about_image else static("yanoa_racing/assets/img/me.jpg")
+        return self.about_image.url if self.about_image else static("yanoa_racing/assets/img/me.webp")
 
     @property
     def sponsors_image_url(self):
-        return self.sponsors_image.url if self.sponsors_image else static("yanoa_racing/assets/img/testimonials-bg.jpg")
+        return self.sponsors_image.url if self.sponsors_image else static("yanoa_racing/assets/img/testimonials-bg.webp")
 
     def __str__(self):
         return "Website profile"
