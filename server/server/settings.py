@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+LIVECOACH_RECORDINGS_DIR = os.getenv("LIVECOACH_RECORDINGS_DIR", str(BASE_DIR / "recordings"))
 
 def env(name, default=None):
     file_name = os.getenv(f"{name}_FILE")
@@ -55,11 +56,12 @@ if env("DB_HOST"):
         "PASSWORD": env("DB_PASSWORD", ""),
         "HOST": env("DB_HOST"),
         "PORT": env("DB_PORT", "5432"),
-        "CONN_MAX_AGE": 60,
+        "CONN_MAX_AGE": int(env("DB_CONN_MAX_AGE", "60")),
         "OPTIONS": {"connect_timeout": 5},
     }}
 else:
-    DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
+    DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3",
+                             "OPTIONS": {"timeout": 20, "transaction_mode": "IMMEDIATE"}}}
 
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},

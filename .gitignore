@@ -9,3 +9,6 @@ staticfiles/
 *.sql
 *.json
 !package.json
+server/live-data/
+server/recordings/
+live-data/

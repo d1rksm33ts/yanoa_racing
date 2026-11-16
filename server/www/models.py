@@ -111,3 +111,4 @@ class Trophy(models.Model):
 
     def __str__(self):
         return self.year
+from .live_models import TimingTrack, FollowSession, FollowDriver, CoachEvent, CoachAction, TimingPacket, TimingConnection, TimingRecording, TimingSimulation

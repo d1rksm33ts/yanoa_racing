@@ -1,0 +1,8 @@
+# Build the existing Racing image first. Keep the optional timing runtime separate.
+ARG RACING_BASE_IMAGE=yanoa-racing:local
+FROM node:24-bookworm-slim@sha256:dc26ae92c9fb15cf6b1d63e20f0944b2efe0f115b20e00be48fb23fceb061c54 AS node-runtime
+FROM ${RACING_BASE_IMAGE}
+USER root
+COPY --from=node-runtime /usr/local/bin/node /usr/local/bin/node
+COPY --chown=app:app server/timing /app/timing
+USER 10001:10001

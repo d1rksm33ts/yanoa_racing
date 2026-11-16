@@ -1,0 +1,114 @@
+name: yanoa-racing-coach
+services:
+  live-web:
+    extends:
+      file: compose.yml
+      service: web
+    build:
+      context: .
+      dockerfile: Dockerfile.livecoach
+      args:
+        RACING_BASE_IMAGE: ${LIVECOACH_BASE_IMAGE:-yanoa-racing:local}
+    image: ${LIVECOACH_IMAGE:-yanoa-racing-live:local}
+    container_name: yanoa-racing-live
+    command: ["python", "-m", "uvicorn", "server.asgi:application", "--host", "0.0.0.0", "--port", "8080", "--workers", "2", "--proxy-headers", "--forwarded-allow-ips", "*"]
+    environment:
+      DB_CONN_MAX_AGE: "0"
+      LIVECOACH_RECORDINGS_DIR: /recordings
+    volumes:
+      - ${RACING_MEDIA_DIR:-./media}:/app/media:ro
+      - ${LIVECOACH_RECORDINGS_DIR:-./recordings}:/recordings:ro
+  simulation-worker:
+    extends:
+      file: compose.yml
+      service: web
+    build:
+      context: .
+      dockerfile: Dockerfile.livecoach
+      args:
+        RACING_BASE_IMAGE: ${LIVECOACH_BASE_IMAGE:-yanoa-racing:local}
+    image: ${LIVECOACH_IMAGE:-yanoa-racing-live:local}
+    container_name: yanoa-racing-simulation-worker
+    command: ["python", "manage.py", "run_coach_simulations"]
+    environment:
+      LIVECOACH_RECORDINGS_DIR: /recordings
+    depends_on:
+      live-web:
+        condition: service_healthy
+    volumes:
+      - ${RACING_MEDIA_DIR:-./media}:/app/media:ro
+      - ${LIVECOACH_RECORDINGS_DIR:-./recordings}:/recordings:ro
+    healthcheck:
+      test: ["CMD", "python", "-c", "import os,time; assert time.time()-os.path.getmtime('/tmp/coach-simulations.heartbeat') < 15"]
+      interval: 20s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+  goodwill-worker: &worker
+    extends:
+      file: compose.yml
+      service: web
+    build:
+      context: .
+      dockerfile: Dockerfile.livecoach
+      args:
+        RACING_BASE_IMAGE: ${LIVECOACH_BASE_IMAGE:-yanoa-racing:local}
+    image: ${LIVECOACH_IMAGE:-yanoa-racing-live:local}
+    container_name: yanoa-racing-goodwill-worker
+    command: ["python", "manage.py", "run_live_timing", "--track", "goodwill"]
+    environment:
+      LIVECOACH_DATA_DIR: /app/live-data
+    depends_on:
+      live-web:
+        condition: service_healthy
+    volumes:
+      - ${LIVECOACH_DATA_DIR:-./live-data}:/app/live-data
+      - ${RACING_MEDIA_DIR:-./media}:/app/media:ro
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "check_live_worker", "--track", "goodwill"]
+      interval: 20s
+      timeout: 10s
+      start_period: 90s
+      retries: 3
+  agadir-worker:
+    <<: *worker
+    container_name: yanoa-racing-agadir-worker
+    command: ["python", "manage.py", "run_live_timing", "--track", "agadir"]
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "check_live_worker", "--track", "agadir"]
+      interval: 20s
+      timeout: 10s
+      start_period: 90s
+      retries: 3
+  campillos-worker:
+    <<: *worker
+    container_name: yanoa-racing-campillos-worker
+    command: ["python", "manage.py", "run_live_timing", "--track", "campillos"]
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "check_live_worker", "--track", "campillos"]
+      interval: 20s
+      timeout: 10s
+      start_period: 90s
+      retries: 3
+  spa-worker:
+    <<: *worker
+    container_name: yanoa-racing-spa-worker
+    command: ["python", "manage.py", "run_live_timing", "--track", "spa"]
+    healthcheck:
+      test: ["CMD", "python", "manage.py", "check_live_worker", "--track", "spa"]
+      interval: 20s
+      timeout: 10s
+      start_period: 90s
+      retries: 3
+secrets:
+  django_secret_key:
+    file: /srv/yanoa/secrets/yanoa_racing/django_secret_key
+  db_password:
+    file: /srv/yanoa/secrets/yanoa_racing/db_password
+networks:
+  edge:
+    name: yanoa-edge
+    external: true
+  data:
+    name: yanoa-data
+    external: true

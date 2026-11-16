@@ -23,6 +23,7 @@ COPY --chown=app:app server/manage.py /app/manage.py
 COPY --chown=app:app server/server /app/server
 COPY --chown=app:app server/www/*.py /app/www/
 COPY --chown=app:app server/www/migrations /app/www/migrations
+COPY --chown=app:app server/www/management /app/www/management
 COPY --chown=app:app server/www/templates /app/www/templates
 COPY --from=static-builder --chown=app:app /app/staticfiles /app/staticfiles
 COPY --chown=app:app entrypoint.sh /app/entrypoint.sh

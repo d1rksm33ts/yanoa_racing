@@ -1,9 +1,23 @@
 from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
+from . import live_views
 
 app_name = "www"
 urlpatterns = [
+    path("live/", live_views.page, name="livecoach"),
+    path("live/login/", auth_views.LoginView.as_view(template_name="livecoach/login.html", redirect_authenticated_user=True), name="livecoach-login"),
+    path("live/samenvattingen/", live_views.summary, name="livecoach-summary"),
+    path("live/api/", live_views.overview, name="livecoach-overview"),
+    path("live/api/start/", live_views.start, name="livecoach-start"),
+    path("live/api/connect/", live_views.connect, name="livecoach-connect"),
+    path("live/api/simulate/", live_views.simulate, name="livecoach-simulate"),
+    path("live/api/simulations/<uuid:pk>/action/", live_views.simulation_action, name="livecoach-simulation-action"),
+    path("live/api/sessions/<uuid:pk>/", live_views.detail, name="livecoach-detail"),
+    path("live/api/sessions/<uuid:pk>/action/", live_views.action, name="livecoach-action"),
+    path("live/api/sessions/<uuid:pk>/discard/", live_views.discard, name="livecoach-discard"),
+    path("live/api/sessions/<uuid:pk>/events/", live_views.stream, name="livecoach-events"),
+    path("live/api/sessions/<uuid:pk>/export/", live_views.export, name="livecoach-export"),
     path("", views.index, name="index"),
     path("calendar", views.calendar, name="calendar-legacy"),
     path("calendar/", views.calendar, name="calendar"),

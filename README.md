@@ -26,6 +26,14 @@ docker exec -it yanoa-racing python manage.py createsuperuser
 
 Uploaded photos are converted to display and thumbnail WebP files. They are stored in the persistent `media/` bind mount, which must be included alongside the PostgreSQL database in backups.
 
+## Live Coach
+
+De besloten mobiele timingapp staat op **https://racing.yanoa.be/live/**.
+Zie [Live Coach: gebruik, architectuur, tests en serverbeheer](docs/livecoach.md).
+Ronde-/sectorfeedback, een volledig baanoverzicht, Update piloten met behoud van
+referenties, finishmeldingen, opnamesimulatie en serveropslag zijn beschikbaar.
+Sectoren zijn geverifieerd op Campillos en vereisen echte brongegevens per baan.
+
 ## Verification
 
 ```sh

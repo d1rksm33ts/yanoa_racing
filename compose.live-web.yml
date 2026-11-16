@@ -1,0 +1,7 @@
+# Optional web-only release override; timing and simulation workers keep their image.
+services:
+  live-web:
+    image: ${LIVECOACH_WEB_IMAGE:-yanoa-racing-live:20261114-pace}
+    build:
+      args:
+        RACING_BASE_IMAGE: ${LIVECOACH_WEB_BASE_IMAGE:-yanoa-racing-coach-base:20261114-pace}

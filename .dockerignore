@@ -6,3 +6,9 @@ __pycache__
 db.sqlite3
 docs
 tests
+.env
+*.dump
+*.tgz
+server/recordings
+server/live-data
+live-data
