@@ -4,6 +4,7 @@ import re
 from datetime import datetime
 
 from django.db import connection, transaction
+from django.db.models import Q
 from django.utils import timezone
 
 from .live_pit import forecast, settings_for
@@ -182,7 +183,12 @@ def timing_color(value, bests):
 def snapshot(session):
     current = {e["identity"] for e in session.track.entrants}
     finished = {row["identity"] for row in ApexAdapter(session.track.parser_state).standings() if row["finished"]} if session.track.parser_state else set()
-    events = list(session.events.order_by("-pk")[:50])
+    event_query = session.events.all()
+    if session.track.mode == "replay":
+        rewind = session.events.filter(kind="reset", payload__rewind=True).order_by("-pk").first()
+        if rewind:
+            event_query = event_query.filter(pk__gte=rewind.pk)
+    events = list(event_query.order_by("-pk")[:50])
     rows = ApexAdapter(session.track.parser_state).standings() if session.track.parser_state else []
     adapter = ApexAdapter(session.track.parser_state) if session.track.parser_state else None
     race = adapter.race_progress() if adapter else {}
@@ -195,7 +201,7 @@ def snapshot(session):
     kart_history = {driver.pk: [] for driver in drivers}
     kart_events = session.events.filter(kind="kart", driver_id__in=kart_history)
     if session.track.mode == "replay":
-        restart = session.events.filter(kind="reset", payload__message__startswith="Simulatie herstart").order_by("-pk").first()
+        restart = session.events.filter(kind="reset").filter(Q(payload__message__startswith="Simulatie herstart") | Q(payload__rewind=True)).order_by("-pk").first()
         if restart:
             kart_events = kart_events.filter(pk__gt=restart.pk)
     for event in kart_events.order_by("pk"):
@@ -207,7 +213,7 @@ def snapshot(session):
         if old_kart:
             kart_history[event.driver_id].append({"kart": old_kart, "best": event.payload.get("referenceBest", {})})
     pits = {row["identity"]: forecast(rows, {**row, "finished": row["finished"] or session.track.parser_state.get("flag") == "lf"}, pit_settings, race) for row in rows if session.state == "active" and row["identity"] in identities}
-    result = {"pitSettings": pit_settings, "id": str(session.pk), "name": session.name, "state": session.state,
+    result = {"pitSettings": pit_settings, "id": str(session.pk), "name": session.name, "state": session.state, "activity": session.activity,
             "startedAt": session.started_at.isoformat(), "track": track_data(session.track),
             "drivers": [{"id": d.pk, "identity": d.identity, "name": d.name, "kart": d.kart,
                          "bestColors": {metric: timing_color({"metric": metric, "timeMs": value}, session_bests)["color"] for metric, value in d.best.items()},
@@ -217,6 +223,9 @@ def snapshot(session):
                          "present": d.identity in current} for d in drivers],
             "cursor": events[0].pk if events else 0,
             "events": [{"id": e.pk, "kind": e.kind, "payload": present_feedback(e.payload) if e.kind == "feedback" else e.payload} for e in reversed(events)]}
+    if session.activity == "training" and drivers:
+        from .live_training import training_comparison, used_karts
+        result["training"] = {**training_comparison(drivers[0], rows, session_bests, session.track.parser_state), "karts": used_karts(session, drivers[0])}
     if session.track.mode == "replay":
         from .live_models import TimingSimulation
         from .live_simulation import simulation_data

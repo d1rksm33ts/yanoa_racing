@@ -33,6 +33,7 @@ class FollowSession(models.Model):
     state = models.CharField(max_length=12, default="active")
     started_at = models.DateTimeField(auto_now_add=True)
     stopped_at = models.DateTimeField(null=True)
+    activity = models.CharField(max_length=12, default="sprint", db_default="sprint")
     pit_settings = models.JSONField(default=dict)
     request_id = models.UUIDField(default=uuid.uuid4, unique=True)
 
@@ -105,4 +106,21 @@ class TimingSimulation(models.Model):
     byte_offset = models.PositiveBigIntegerField()
     run = models.PositiveIntegerField(default=1)
     error = models.CharField(max_length=300, blank=True)
+    request_id = models.UUIDField(unique=True)
+
+
+class KartReport(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    track = models.ForeignKey(TimingTrack, on_delete=models.PROTECT)
+    session = models.ForeignKey(FollowSession, null=True, on_delete=models.SET_NULL)
+    pilot = models.CharField(max_length=150)
+    kart = models.CharField(max_length=30)
+    session_name = models.CharField(max_length=120)
+    conditions = models.CharField(max_length=10)
+    scores = models.JSONField(default=dict)
+    template = models.JSONField(default=dict)
+    timing = models.JSONField(default=dict)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     request_id = models.UUIDField(unique=True)

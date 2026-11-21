@@ -55,8 +55,12 @@ def owned(request, pk, lock=False):
 
 @coach_access
 @require_GET
-def page(request):
-    return render(request, "livecoach/index.html")
+def page(request, activity=None):
+    if activity is None:
+        return render(request, "livecoach/choose.html")
+    if activity not in {"training", "sprint", "endurance"}:
+        raise Http404
+    return render(request, "livecoach/index.html", {"coach_mode": activity})
 
 
 @coach_access
@@ -79,8 +83,8 @@ def overview(request):
             data.update(entrants=[], standings=[], connection="disconnected")
         tracks.append(data)
     simulations = TimingSimulation.objects.filter(owner=request.user).select_related("recording")
-    visible_simulations = list(simulations.filter(state__in=["paused", "playing"]).order_by("-track_id"))
-    visible_simulations += list(simulations.exclude(state__in=["paused", "playing"]).order_by("-track_id")[:20])
+    visible_simulations = list(simulations.filter(state__in=["paused", "playing", "rewinding"]).order_by("-track_id"))
+    visible_simulations += list(simulations.exclude(state__in=["paused", "playing", "rewinding"]).order_by("-track_id")[:20])
     return JsonResponse({"tracks": tracks,
                          "activeSessions": [{"id": str(s.pk), "name": s.name, "track": s.track.name, "trackId": s.track_id,
                               "startedAt": s.started_at.isoformat(), "drivers": [d.name for d in s.drivers.all()]}
@@ -157,14 +161,19 @@ def start(request):
         return JsonResponse({"error": "Verbind eerst met deze baan."}, status=409)
     if not status["workerActive"] or status["connection"] != "connected" or not track.capabilities.get("laps"):
         return JsonResponse({"error": "De bron is nog niet klaar voor rondefeedback."}, status=409)
+    activity = data.get("activity", "sprint")
+    if activity not in {"training", "sprint", "endurance"}:
+        raise ValueError("Invalid activity")
     selected = data["drivers"]
+    if activity == "training" and (not isinstance(selected, list) or len(selected) != 1):
+        return JsonResponse({"error": "Kies één piloot voor deze training."}, status=400)
     available = {e["identity"]: e for e in track.entrants}
     if not isinstance(selected, list) or not 1 <= len(selected) <= 12 or len(set(selected)) != len(selected) or any(e not in available for e in selected):
         raise ValueError("Invalid drivers")
     if FollowSession.objects.filter(owner=request.user, state="active").count() >= 5:
         return JsonResponse({"error": "Je hebt vijf actieve volgsessies. Open bovenaan Actieve volgsessies en kies Stop & bewaar bij een sessie."}, status=409)
     name = str(data.get("name", "")).strip()[:120] or track.name
-    session = FollowSession.objects.create(owner=request.user, track=track, name=name, request_id=request_id, pit_settings=settings_for(track))
+    session = FollowSession.objects.create(owner=request.user, track=track, name=name, request_id=request_id, activity=activity, pit_settings=settings_for(track))
     for i, identity in enumerate(selected):
         entrant = available[identity]
         FollowDriver.objects.create(session=session, identity=identity, name=entrant["name"][:150], kart=entrant["kart"][:30], primary=i == 0)
@@ -225,6 +234,8 @@ def action(request, pk):
             driver.save(update_fields=["block", "best", "last"])
     elif name == "drivers":
         selected = data["drivers"]
+        if session.activity == "training" and (not isinstance(selected, list) or len(selected) != 1):
+            raise ValueError("Training requires one driver")
         available = {e["identity"]: e for e in session.track.entrants}
         if not isinstance(selected, list) or not 1 <= len(selected) <= 12 or len(set(selected)) != len(selected) or any(e not in available for e in selected):
             raise ValueError("Invalid selection")
@@ -314,3 +325,53 @@ def stream(request, pk):
     response["Cache-Control"] = "no-store, no-transform"
     response["X-Accel-Buffering"] = "no"
     return response
+
+
+@coach_access
+@require_GET
+def kart_reports(request):
+    from .live_models import KartReport
+    from .live_training import SCORE_TEMPLATE, report_data
+    reports = KartReport.objects.filter(owner=request.user).select_related("track").order_by("-created_at")
+    if request.GET.get("trackId"):
+        reports = reports.filter(track_id=int(request.GET["trackId"]))
+    if request.GET.get("kart"):
+        reports = reports.filter(kart=request.GET["kart"][:30])
+    return JsonResponse({"template": SCORE_TEMPLATE, "reports": [report_data(item) for item in reports[:200]]})
+
+
+@coach_access
+@require_POST
+@transaction.atomic
+def save_kart_report(request, pk):
+    from .live_models import KartReport
+    from .live_training import SCORE_TEMPLATE, used_karts, kart_timing, report_data
+    session = owned(request, pk, lock=True)
+    data = body(request)
+    request_id = uuid.UUID(data["requestId"])
+    existing = KartReport.objects.filter(request_id=request_id).first()
+    if existing:
+        if existing.owner_id != request.user.pk or existing.session_id != session.pk:
+            raise Http404
+        return JsonResponse(report_data(existing))
+    driver = get_object_or_404(session.drivers, pk=int(data["driverId"]))
+    kart = str(data["kart"])
+    if kart not in used_karts(session, driver):
+        raise ValueError("Kart not used by this driver")
+    track = get_object_or_404(TimingTrack, pk=int(data["trackId"]), owner__isnull=True, mode="live")
+    if session.track.mode == "live" and track.pk != session.track_id:
+        raise ValueError("Different circuit")
+    scores = data["scores"]
+    keys = {item["id"] for item in SCORE_TEMPLATE["elements"]}
+    if not isinstance(scores, dict) or not scores or not set(scores) <= keys or any(type(value) is not int or not 1 <= value <= 5 for value in scores.values()):
+        raise ValueError("Use scores 1–5")
+    conditions = data["conditions"]
+    if conditions not in {"dry", "damp", "wet"}:
+        raise ValueError("Invalid conditions")
+    notes = data.get("notes", "")
+    if not isinstance(notes, str) or len(notes) > 2000:
+        raise ValueError("Notes too long")
+    report = KartReport.objects.create(owner=request.user, track=track, session=session,
+        pilot=driver.name, kart=kart, session_name=session.name, conditions=conditions, scores=scores,
+        notes=notes.strip(), template=SCORE_TEMPLATE, timing=kart_timing(session, driver, kart), request_id=request_id)
+    return JsonResponse(report_data(report), status=201)

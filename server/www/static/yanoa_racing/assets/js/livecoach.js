@@ -1,6 +1,8 @@
 (() => {
   'use strict';
   const $ = id => document.getElementById(id);
+  const pageActivity=document.body.dataset.coachMode || 'sprint';
+  const providerReady=()=>!$('training-provider') || $('training-provider').value==='apex';
   const emptyFeedback = $('driver-cards').firstElementChild.cloneNode(true);
   let tracks = [], recordings = [], simulations = [], activeFollowSessions = [], selected = [], session = null, stream = null, connected = false, busy = false, replayTrackId = null;
   const node = (tag, content, cls) => { const el = document.createElement(tag); if (content !== undefined) el.textContent = content; if (cls) el.className = cls; return el; };
@@ -32,16 +34,21 @@
     for (const input of $('driver-cards').querySelectorAll('.driver-pit-control input')) input.disabled = busy || session?.state !== 'active';
     for (const button of $('active-sessions').querySelectorAll('button')) button.disabled = busy;
     $('connect').textContent = busy ? 'Bezig…' : currentSimulation() ? 'Simulatie geladen' : track?.subscribed ? 'Verbinding verbreken' : 'Verbinden';
-    $('connect').disabled = busy || !track || !!currentSimulation();
+    $('connect').disabled = busy || !providerReady() || !track || !!currentSimulation();
     $('pilot-count').textContent = `${selected.length} gekozen`;
-    $('start').disabled = busy || !selected.length || !track?.subscribed || !track.workerActive || track.connection !== 'connected' || !track.capabilities.laps;
+    $('start').disabled = busy || !providerReady() || !selected.length || !track?.subscribed || !track.workerActive || track.connection !== 'connected' || !track.capabilities.laps;
     const editing = session?.state === 'active' && session.track.id === track?.id;
     const current = session?.drivers.map(d => d.identity) || [];
     const changed = selected.length !== current.length || selected.some(id => !current.includes(id)) || selected[0] !== current[0];
     $('start').hidden = editing;
+    if($('training-provider'))$('provider-note').hidden=providerReady();
     $('update-pilots').hidden = !editing;
     $('update-pilots').disabled = busy || !selected.length || !changed;
     $('selection-status').textContent = editing ? changed ? 'Selectie gewijzigd' : '' : '';
+    window.kartdashContext = {activity:pageActivity,trackId:track?.id,
+      sessionId:editing?session.id:null,
+      pilots:(track?.entrants || []).filter(p=>selected.includes(p.identity))};
+    window.dispatchEvent(new CustomEvent('coach:dashboard-context',{detail:window.kartdashContext}));
     showSimulation();
   }
   function showTrack() {
@@ -60,10 +67,10 @@
       list.replaceChildren();
       for (const entrant of track.entrants) {
         const label = node('label', undefined, 'pilot-option'), input = node('input');
-        input.type = 'checkbox'; input.value = entrant.identity; input.checked = selected.includes(entrant.identity);
+        input.type = pageActivity==='training'?'radio':'checkbox';input.name=pageActivity==='training'?'training-driver':''; input.value = entrant.identity; input.checked = selected.includes(entrant.identity);
         input.addEventListener('change', () => {
-          if (input.checked && selected.length >= 12) { input.checked = false; error('Selecteer maximaal 12 piloten.'); return; }
-          selected = input.checked ? [...selected, input.value] : selected.filter(id => id !== input.value);
+          if (pageActivity!=='training' && input.checked && selected.length >= 12) { input.checked = false; error(pageActivity==='training'?'Kies één piloot voor deze training.':'Selecteer maximaal 12 piloten.'); return; }
+          selected = pageActivity==='training'?[input.value]:input.checked ? [...selected, input.value] : selected.filter(id => id !== input.value);
           updateStart();
           showStandings();
         });
@@ -81,13 +88,14 @@
       selected = selected.map(identity => identities.get(identity) || identity);
     }
     session = state;
+    document.body.dataset.activeMode=state.activity || 'sprint';
     if (state.simulation) simulations = [...simulations.filter(s => s.id !== state.simulation.id), state.simulation];
     document.body.classList.add('has-session');
     $('active-name').textContent = state.name;
     $('session-badge').textContent = state.state === 'active' ? (state.track.mode === 'replay' ? 'REPLAY' : 'ACTIEF') : 'BEWAARD';
     $('session-badge').className = 'badge' + (state.state === 'active' ? ' active' : '');
     $('session-controls').hidden = false;
-    $('pit-settings-panel').hidden = false;
+    $('pit-settings-panel').hidden = state.activity==='training';
     if (!$('pit-settings-form').contains(document.activeElement) && !document.querySelector('#pit-settings-form [data-dirty]')) {
       $('pit-duration').value = state.pitSettings.durationSeconds;
       $('pit-stops').value = state.pitSettings.requiredStops;
@@ -189,11 +197,14 @@
     }
     const history = $('history'); history.replaceChildren();
     for (const event of [...state.events].reverse()) {
-      const item = node('li'); item.append(node('span',event.payload.name || 'Sessie'), node('strong',event.payload.message || event.kind)); history.append(item);
+      const item = node('li'), identity=node('span',event.payload.name || 'Sessie');
+      if(event.payload.lapCountKnown===true && Number.isInteger(event.payload.lap) && event.payload.lap>0)identity.append(node('small',`Ronde ${event.payload.lap}`));
+      item.append(identity, node('strong',event.payload.message || event.kind)); history.append(item);
     }
     showSimulation();
     updateStart();
     showStandings();
+    window.dispatchEvent(new CustomEvent('coach:snapshot',{detail:state}));
   }
   function showComments() {
     const track=session?.track || currentTrack(), panel=$('race-comments-panel');
@@ -233,6 +244,7 @@
     const status = $('live-status');
     if (session.state !== 'active') { status.textContent = 'Gestopt en bewaard'; return; }
     if (session.simulation?.state === 'finished') { status.textContent = 'Simulatie afgelopen'; return; }
+    if (session.simulation?.state === 'rewinding') { status.textContent = 'Terugspoelen · timing herstellen'; return; }
     if (session.simulation?.state === 'paused') { status.textContent = 'Simulatie gepauzeerd'; return; }
     if (session.track.finished) { status.textContent = '🏁 Finish'; return; }
     if (!connected) { status.textContent = 'Verbinding onderbroken'; return; }
@@ -241,6 +253,7 @@
     status.textContent = `Live verbonden · ${seconds == null ? 'wachten op timingdata' : `laatste timingupdate ${seconds}s geleden`}`;
   }
   function follow(state) {
+    if((state.activity || 'sprint')!==pageActivity){location.assign(`/live/${state.activity}/?session=${encodeURIComponent(state.id)}`);return;}
     $('active-sessions-details').open = false;
     if (stream) stream.close();
     connected = false;
@@ -273,6 +286,7 @@
     }
     if(session){const latest=tracks.find(t=>t.id===session.track.id);if(latest)session.track=latest;}
     showTrack();showRaceClock();
+    window.dispatchEvent(new CustomEvent('coach:tracks',{detail:tracks}));
     const list = $('sessions'); list.replaceChildren();
     for (const saved of data.sessions) {
       const button = node('button',undefined,'saved-session'); button.type='button';
@@ -354,12 +368,12 @@
   }
   function showActiveSimulations() {
     const list = $('active-simulations'); list.replaceChildren();
-    const active = simulations.filter(sim => ['paused','playing'].includes(sim.state));
+    const active = simulations.filter(sim => ['paused','playing','rewinding'].includes(sim.state));
     if (!active.length) return;
     list.append(node('p',`Actieve simulaties: ${active.length} / 3`,'small muted'));
     for (const sim of active) {
       const row = node('div',undefined,'simulation-list-row');
-      row.append(node('strong',sim.title),node('small',`${sim.recording} · ${sim.state === 'paused' ? 'gepauzeerd' : 'speelt af'}`,'muted'));
+      row.append(node('strong',sim.title),node('small',`${sim.recording} · ${sim.state === 'rewinding' ? 'wordt teruggespoeld' : sim.state === 'paused' ? 'gepauzeerd' : 'speelt af'}`,'muted'));
       const open=node('button','Open simulatie','button secondary');open.type='button';open.disabled=busy;
       open.addEventListener('click',async()=>{
         if(busy)return;
@@ -427,12 +441,13 @@
     const sim = currentSimulation(); $('simulation-panel').hidden = !sim;
     if (!sim) return;
     $('simulation-title').textContent = `${sim.recording} · ${sim.title}`;
-    const labels = {paused:'Gepauzeerd',playing:'Speelt af',finished:'Afgelopen',stopped:'Gestopt',error:'Fout'};
+    const labels = {rewinding:'Terugspoelen · timing herstellen',paused:'Gepauzeerd',playing:'Speelt af',finished:'Afgelopen',stopped:'Gestopt',error:'Fout'};
     const clock = ms => `${Math.floor(ms/60000)}:${String(Math.floor(ms/1000)%60).padStart(2,'0')}`;
     $('simulation-status').textContent = `${labels[sim.state] || sim.state} · ${clock(sim.positionMs)} / ${clock(sim.durationMs)} · ${sim.speed}×${sim.error ? ' · '+sim.error : ''}`;
     $('simulation-progress').max = sim.durationMs || 1; $('simulation-progress').value = sim.positionMs;
     $('sim-play').disabled = busy || sim.state !== 'paused' || session?.state !== 'active' || session?.track.id !== sim.trackId;
     $('sim-pause').disabled = busy || sim.state !== 'playing';
+    $('sim-rewind').disabled = busy || !['paused','playing','finished'].includes(sim.state) || sim.positionMs<=0;
     $('sim-restart').disabled = busy;
     $('sim-stop').disabled = busy || ['stopped','finished','error'].includes(sim.state);
     $('sim-speed').disabled = busy || !['paused','playing'].includes(sim.state);
@@ -483,6 +498,7 @@
     }catch(e){error(e.message);}finally{busy=false;showSegments();showTrack();}
   });
   $('sim-play').addEventListener('click',()=>simulationAction('play'));
+  $('sim-rewind').addEventListener('click',()=>simulationAction('rewind'));
   $('sim-pause').addEventListener('click',()=>simulationAction('pause'));
   $('sim-stop').addEventListener('click',()=>simulationAction('stop'));
   $('sim-restart').addEventListener('click',()=>{if(confirm('Vanaf het begin afspelen en de referenties opnieuw opbouwen? Eerdere feedback blijft bewaard.'))simulationAction('restart');});
@@ -497,7 +513,7 @@
     if (!$('update-pilots').hidden) { $('update-pilots').click(); return; }
     if (busy || $('start').disabled) return;
     busy=true;updateStart();error('');
-    try { follow(await api('start/',{trackId:currentTrack()?.id,drivers:selected,name:$('session-name').value,requestId:crypto.randomUUID()})); await refresh(); }
+    try { follow(await api('start/',{activity:pageActivity,trackId:currentTrack()?.id,drivers:selected,name:$('session-name').value,requestId:crypto.randomUUID()})); await refresh(); }
     catch(e) { error(e.message); }
     finally { busy=false;updateStart(); }
   });
@@ -507,6 +523,11 @@
   $('rename').addEventListener('click',()=>{const name=prompt('Sessienaam',session?.name);if(name?.trim())action('save',{name});});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden){refresh().catch(e=>error(e.message));updateConnection();}});
   async function poll() { try { await refresh(); } catch(e) { error(e.message); } finally { setTimeout(poll,5000); } }
-  poll();
+  const sessionToOpen=new URLSearchParams(location.search).get('session');
+  async function bootstrap(){
+    if(sessionToOpen){try{await refresh();follow(await api(`sessions/${encodeURIComponent(sessionToOpen)}/`));}catch(e){error(e.message);}}
+    poll();
+  }
+  bootstrap();
   setInterval(updateConnection,1000);
 })();

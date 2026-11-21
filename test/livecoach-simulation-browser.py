@@ -42,11 +42,11 @@ try:
                     context=browser.new_context(viewport={'width':390 if mobile else 1365,'height':844 if mobile else 900})
                     page=context.new_page();errors=[]
                     page.on('pageerror',lambda e:errors.append(str(e)))
-                    page.goto('http://127.0.0.1:8210/live/login/?next=/live/')
+                    page.goto('http://127.0.0.1:8210/live/login/?next=/live/sprint/')
                     page.get_by_label('Gebruikersnaam').fill(user.username)
                     page.get_by_label('Wachtwoord').fill(password)
                     page.get_by_role('button',name='Aanmelden',exact=True).click()
-                    page.wait_for_url('http://127.0.0.1:8210/live/')
+                    page.wait_for_url('http://127.0.0.1:8210/live/sprint/')
                     cdp=context.new_cdp_session(page)
                     cdp.send('Network.enable');cdp.send('Network.setCacheDisabled',{'cacheDisabled':True})
                     if slow:cdp.send('Network.emulateNetworkConditions',{'offline':False,'latency':150,'downloadThroughput':200000,'uploadThroughput':100000})

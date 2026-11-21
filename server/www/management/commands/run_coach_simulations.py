@@ -25,7 +25,7 @@ class Command(BaseCommand):
         self.stdout.write("Simulation service ready")
         while not stopping:
             Path("/tmp/coach-simulations.heartbeat").touch()
-            for sim_id in TimingSimulation.objects.filter(state__in=["paused", "playing"]).values_list("pk", flat=True):
+            for sim_id in TimingSimulation.objects.filter(state__in=["paused", "playing", "rewinding"]).values_list("pk", flat=True):
                 try:
                     tick(sim_id)
                 except OperationalError:

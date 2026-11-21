@@ -141,7 +141,7 @@ class ApexAdapter:
         # Subsequent kart changes belong to the same driver, not a new identity.
         if row.get("identity_scope") != scope:
             if row.get("identity_scope") and row["identity_scope"][3] != name:
-                for field in ("recent_laps", "pit_samples", "in_pit", "pit_enter_ms", "pit_dirty", "pit_sample_pending", "completed_pits", "last_pit_ms", "last_pit_exit_ms", "sector_bests", "observed_best_lap", "lap_crossings"):
+                for field in ("recent_laps", "pit_samples", "in_pit", "pit_enter_ms", "pit_dirty", "pit_sample_pending", "completed_pits", "last_pit_ms", "last_pit_exit_ms", "pit_exit_pending", "pit_entry_field", "sector_bests", "observed_best_lap", "lap_crossings", "training_times", "training_latest_metric"):
                     row.pop(field, None)
             row["driver_identity"] = hashlib.sha256("\0".join(scope + [kart]).encode()).hexdigest()
             row["identity_scope"] = scope
@@ -260,6 +260,13 @@ class ApexAdapter:
         previous_rows = self.state["rows"].copy()
         prior = {rid: self.field(row, "tlp") or "0" for rid, row in previous_rows.items()}
         baseline = prior.copy()
+        training_references = {}
+        for rid, row in previous_rows.items():
+            values = dict(row.get("sector_bests", {}))
+            laps = [value for value in (milliseconds(self.field(row, "blp")), row.get("observed_best_lap")) if value]
+            if laps:
+                values["lap"] = min(laps)
+            training_references[rid] = values
         identities = {rid: self.entrant(rid, row)["identity"] for rid, row in previous_rows.items()}
         updated, snapshots, markers, pits = set(), set(), set(), set()
         sector_updates = []
@@ -325,13 +332,16 @@ class ApexAdapter:
                 row = self.state["rows"].get(target)
                 if row is not None:
                     if action == "*in" and not row.get("in_pit"):
-                        row.update(in_pit=True, pit_enter_ms=clock_ms, pit_dirty=True)
+                        # Same-epoch gaps for a conservative pit-exit estimate.
+                        row["pit_entry_field"] = [{k: r.get(k) for k in ("identity", "gapMs", "gapEstimated", "laps", "inPit")} for r in self.standings()]
+                        row.update(in_pit=True, pit_enter_ms=clock_ms, pit_dirty=True, pit_exit_pending=False)
                         clean = row.get("recent_laps", [])[-3:]
                         row["pit_pace_ms"] = int(median(v["timeMs"] for v in clean)) if clean else None
                     elif action == "*out":
                         if row.get("in_pit"):
                             row["last_pit_ms"] = clock_ms - row["pit_enter_ms"]
                             row["last_pit_exit_ms"] = clock_ms
+                            row["pit_exit_pending"] = True
                             row["completed_pits"] = row.get("completed_pits", 0) + 1
                             row["pit_sample_pending"] = True
                         row["in_pit"] = False
@@ -352,6 +362,24 @@ class ApexAdapter:
         passages = []
         if not self.supported:
             return passages
+        # Display handoff is a physical passage, independent of whether its time
+        # is excluded from clean personal bests after a pit stop.
+        candidates = {rid for rid, _, _ in sector_updates}
+        if not self.sector_ids():
+            candidates |= updated  # Lap-only circuits: next actual lap crossing.
+        for rid in candidates - snapshots - pits:
+            row = self.state["rows"].get(rid)
+            if not row or row.get("in_pit") or not row.get("pit_exit_pending"):
+                continue
+            if self.entrant(rid, row)["identity"] != identities.get(rid):
+                continue
+            before, after = prior.get(rid, ""), self.field(row, "tlp")
+            if before.isdigit() and after.isdigit() and int(after) < int(before):
+                continue
+            if not self.sector_ids() and not (after.isdigit() and before.isdigit() and int(after)>int(before) or rid in markers):
+                continue
+            if clock_ms > row.get("last_pit_exit_ms", clock_ms):
+                row["pit_exit_pending"] = False
         for rid, metric, duration in sector_updates:
             row = self.state["rows"][rid]
             if rid in snapshots or rid in pits or row.get("in_pit") or row.get("pit_dirty") or self.entrant(rid, row)["identity"] != identities.get(rid):
@@ -376,7 +404,7 @@ class ApexAdapter:
             old_count = baseline.get(rid, "")
             if old_count.isdigit() and after.isdigit() and int(after) < int(old_count):
                 row["run"] = uuid.uuid4().hex
-                for field in ("recent_laps", "pit_samples", "in_pit", "pit_enter_ms", "pit_dirty", "pit_sample_pending", "completed_pits", "sector_seen", "last_pit_ms", "last_pit_exit_ms", "sector_bests", "observed_best_lap", "lap_crossings"):
+                for field in ("recent_laps", "pit_samples", "in_pit", "pit_enter_ms", "pit_dirty", "pit_sample_pending", "completed_pits", "sector_seen", "last_pit_ms", "last_pit_exit_ms", "pit_exit_pending", "pit_entry_field", "sector_bests", "observed_best_lap", "lap_crossings", "training_times", "training_latest_metric"):
                     row.pop(field, None)
             if rid in snapshots or rid not in updated:
                 continue
@@ -430,6 +458,16 @@ class ApexAdapter:
                 if duration:
                     bests = row.setdefault("sector_bests", {})
                     bests[metric] = min(bests.get(metric, duration), duration)
+        for passage in passages:
+            row = self.state["rows"][passage["row"]]
+            metric = passage["metric"]
+            reference = training_references.get(passage["row"], {}).get(metric)
+            _, value = delta_feedback({metric: reference} if reference is not None else {}, metric, passage["timeMs"])
+            if passage.get("pitLap"):
+                value.update(deltaMs=None, pitLap=True)
+            value.update(lap=passage["lap"], kart=passage["kart"], receivedAt=stamp)
+            row.setdefault("training_times", {})[metric] = value
+            row["training_latest_metric"] = metric
         self.state["session_best_times"] = self.session_bests()
         self.state["session_records"] = self.session_records()
         return passages

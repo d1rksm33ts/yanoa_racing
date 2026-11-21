@@ -1,5 +1,247 @@
 # Live Coach — besloten versie
 
+## Nog te winnen bij de gevolgde piloot (18 november 2026)
+
+Onder de eigen tijden staat een compact blok Nog te winnen met vier velden:
+eigen beste rondetijd, laatste ronde → eigen beste, laatste ronde → ideaal en
+eigen beste → ideaal. De verschillen gebruiken de laatst voltooide ronde en
+de bestaande eigen/ideale referenties; negatieve restwinst wordt 0.000s.
+Ontbrekende tijden of een onvolledige ideale sectorsom blijven —. De waarden
+worden met iedere snapshot bijgewerkt en staan op mobiel in twee kolommen.
+
+Release `/home/ubuntu/livecoach-build-20261118-training-potential`, webimage
+`yanoa-racing-live:20261118-training-potential`, digest
+`sha256:f20a7a3a7a9f5fbeed1f6381979aad471bf3d6016e439b3f7ab707c76cf8d8a8`.
+Vier trainingsbrowserprofielen slagen; de proef met eigen beste 54.000s, laatste
+ronde 55.000s en ideaal 53.000s controleert respectievelijk 1.000/2.000/1.000s.
+Gedeelde laadchecker voor en na publicatie. Geen migratie of workerherstart.
+Rollback: `yanoa-racing-live:20261118-manual-focus`.
+
+
+## Fullscreen uitsluitend via knop (18 november 2026)
+
+Automatische fullscreenactivering is volledig verwijderd, ook bij live training,
+Afspelen en heropenen van een sessie. Alleen **Fullscreen training** activeert
+native fullscreen of de bestaande viewportfallback; de sluitknop blijft behouden.
+Acht browserprofielen (live training én replay, desktop/mobiel normaal/traag)
+controleren starten/afspelen zonder automatische focus en expliciet openen/sluiten.
+Gedeelde laadchecker vóór en na publicatie.
+
+Release `/home/ubuntu/livecoach-build-20261118-manual-focus`, webimage
+`yanoa-racing-live:20261118-manual-focus`, digest
+`sha256:050c75709ceb9432a1f63510c2cef7df938531f879cac1c3a6690e5c44af5aa0`.
+Geen migratie of workerherstart. Rollback: `yanoa-racing-live:20261118-training-cycle`.
+
+
+## Kleuren per ronde en verlies van paars record (18 november 2026)
+
+Na een voltooide ronde blijven alle waargenomen tijden uit die ronde gekleurd.
+De eerstvolgende S1 start de nieuwe kleurcyclus: alleen die sector is vernieuwd,
+de overige sectoren en laatste ronde worden grijs. Daarna kleuren sectoren mee
+naarmate ze in dezelfde ronde ontvangen worden; bij de finish is alles opnieuw
+gekleurd. Activering gebruikt de rondecijfers van de opgeslagen passages in
+plaats van alleen de naam van de laatste metric. Onbekende snapshotwaarden
+worden niet als nieuw gepresenteerd.
+
+Elke snapshot herberekent kleuren tegenover het actuele sessierecord. Neemt een
+andere piloot paars over, dan wordt de voormalige recordtijd groen zolang die
+nog een eigen beste is. Dit werkt ook voor een eerste referentie zonder eigen
+delta. De rijbalk volgt deze herberekende kleur van de laatste ronde; sectorlijnen
+volgen hun eigen tijdkleur. Eigen en ideale deltas blijven behouden.
+
+Webrelease `/home/ubuntu/livecoach-build-20261118-training-cycle`, image
+`yanoa-racing-live:20261118-training-cycle`, digest
+`sha256:19c7e9f846b80d578b855154076f47058e350a0ca97c63ab6f8104a43e3855cc`.
+98 Django-tests geslaagd, inclusief volledige ronde→S1→S2→finish en het verlies
+van een sessierecord bij een eerste eigen referentie. Vier browserprofielen
+controleren gekleurde sectorlijnen bij de finish, grijs na de volgende S1 en een
+paarse rijbalk die groen wordt na een sneller gereden ronde van een ander.
+Gedeelde laadchecker vóór en na publicatie. Geen migratie, datarefresh of
+workerherstart nodig. Rollback webimage: `yanoa-racing-live:20261118-training-colors`.
+
+
+## Consistente kleuren, eigen deltas en ideale referentie (18 november 2026)
+
+De rijbalk van de gevolgde piloot volgt de kleur van de laatst gereden ronde:
+paars voor een sessierecord, groen voor een eigen verbetering/evenaring, oranje
+voor trager. Elke bovenlijn volgt de kleur van zijn actieve sectortijd. Alleen
+de laatst ontvangen metric per piloot blijft gekleurd; alle andere passagevelden,
+inclusief hun delta, worden echt grijs. Beste ronde blijft een referentiekolom.
+De ideale rij heeft alleen paarse tekst en een transparante achtergrond.
+
+Alle rijders tonen Δ eigen per sector/laatste ronde. De APEX-parser bewaart nu
+training_times en training_latest_metric. De referentie wordt vóór het verwerken
+van het hele packet vastgelegd, zodat een gelijktijdig bijgewerkte APEX-beste
+rondetijd een verbetering niet ten onrechte in +0.000s verandert. Nieuwe metadata
+wordt bij rijderwissel/tellerreset gewist en bij kartwissel behouden. Pitronden
+verbeteren de referenties niet. De gevolgde piloot gebruikt de bestaande eigen
+feedbackreferenties. Bij oude bronwaarden zonder passagehistoriek wordt de
+bekende eigen beste als fallback gebruikt. De gevolgde piloot heeft daarnaast
+Δ ideaal: sector versus sectorrecord, ronde versus som van alle sectorrecords,
+ook wanneer die som verschilt van de snelste daadwerkelijk gereden ronde.
+Ontbrekende sectorrecords geven geen verzonnen ideale rondetijd.
+
+`refresh_coach_checkpoints --training-only --owner-id 2` vult uitsluitend deze
+twee metadata-velden van bestaande actieve/gepauzeerde replays aan, tot hun
+bestaande bytecursor. Cursor, identiteiten, referenties, eventhistorie, klok en
+andere timingvelden blijven behouden. Een private metadata-backup wordt gemaakt.
+
+Release `/home/ubuntu/livecoach-build-20261118-training-colors`, image
+`yanoa-racing-live:20261118-training-colors`, digest
+`sha256:daf0393c4aff52a3254013b892e4a80f2f7674e45dbe9d88ccb04d221d6e8e32`.
+95 algemene Django-tests plus een gerichte checkpointregressie slagen op SQLite.
+Vier browserprofielen (desktop/mobiel normaal/traag) controleren paarse rij én
+paarse rondelijn, volgende oranje S1 met grijze overige velden, eigen negatieve
+recorddeltas van een andere piloot, onderscheid ideale/werkelijke ronde en
+transparante ideale rij. FCP 52–716 ms. Goodwill-recordingregressie geslaagd.
+Gedeelde laadchecker voor/na publicatie. Web en reeds actieve workers bijgewerkt;
+gestopte Goodwill-recorders blijven gestopt. Metadata-backup:
+`training-colors-before.json` (0600). Geen migratie of referentiereset.
+Rollback webimage: `yanoa-racing-live:20261118-fastest-history`.
+
+
+## Δ snelste en rondenummer in historiek (18 november 2026)
+
+De tekstregels Nieuw/Vorige/Bron zijn uit trainingskaart en vergelijkingsrijen
+verwijderd; phase-metadata en balk/dimming blijven behouden. De actieve piloot
+krijgt Δ snelste per sector en ronde, zowel op de eigen kaart als in de actieve
+vergelijkingsrij. Sectoren vergelijken met het sessierecord; ronde en beste ronde
+vergelijken met de snelste werkelijk gereden ronde, niet de theoretische som.
+Bij ontbrekende referentie blijft de delta —. GEVOLGD is uit de trainingsrij weg.
+De gedeelde historiek toont Ronde N uitsluitend bij lapCountKnown=true met een
+positief geheel rondenummer. Een waargenomen passage wordt niet als officiële
+ronde weergegeven.
+
+Release `/home/ubuntu/livecoach-build-20261118-fastest-history`, webimage
+`yanoa-racing-live:20261118-fastest-history`, digest
+`sha256:ba0a82e2a33b46254dbfe4614fd9e25dd4cfa92f4d5866df2e75e44f2fa47267`.
+Vier bestaande trainingsbrowserprofielen slagen (desktop/mobiel normaal/traag),
+inclusief exacte deltas, afwezige tekstlabels, behouden phase-metadata en Ronde 5
+in historiek. FCP 48–704 ms. Gedeelde laadchecker voor en na publicatie. Geen
+migratie, referentiereset of workerherstart. Rollback: webimage
+`yanoa-racing-live:20261118-training-labels`.
+
+
+## Trainingsposities T1, T2, … (18 november 2026)
+
+De trainingsrijen gebruiken T1/T2/… en T— zonder bekende positie. Raceposities
+blijven P1/P2/…. Webrelease `/home/ubuntu/livecoach-build-20261118-training-labels`,
+image `yanoa-racing-live:20261118-training-labels`, digest
+`sha256:836eada882933d46bc96880a6e59550fd643f19f44ba70bb2ee77938b444f52f`.
+Vier trainingsbrowserprofielen controleren het T4-label, timing en verslagflow.
+Gedeelde laadchecker voor/na publicatie; geen migratie of workerherstart.
+
+
+## Fullscreen bij simulatie pas na Afspelen (18 november 2026)
+
+Een trainingssimulatie opent niet meer automatisch fullscreen na pilootkeuze
+of starten/heropenen van een gepauzeerde volgsessie. De automatische focus
+vereist bij replay de toestand playing. Live APEX-training behoudt de bestaande
+focus bij starten. Een expliciete Fullscreen-knop blijft beschikbaar. De focus
+wordt nog steeds hoogstens eenmaal automatisch per geopende volgsessie gestart,
+zodat het verlaten van fullscreen niet door de volgende snapshot wordt teruggedraaid.
+
+Release `/home/ubuntu/livecoach-build-20261118-replay-focus`, webimage
+`yanoa-racing-live:20261118-replay-focus`, digest
+`sha256:5198bf9913ad3e70955c187f67a98074bb162323642464a8bef57eb1bcb7a746`.
+Een echte lokale replayproef op desktop/mobiel normaal/traag controleert laden,
+piloot kiezen, volgen starten, gepauzeerd heropenen zonder focus, Afspelen met
+focus en binnenkomende tijden, verlaten, pauzeren en stoppen. Alle vier slagen;
+FCP 28–664 ms. Gedeelde laadchecker vóór en na publicatie uitgevoerd. Geen
+migratie, referentiereset of workerherstart. Rollback: webimage
+`yanoa-racing-live:20261118-training-rows`.
+
+
+## Trainingsrijen, ideale ronde en vernieuwingsmarkeringen (18 november 2026)
+
+Tempovergelijking toont nu piloten als rijen, geordend op beste rondetijd met
+positie P1/P2/… onafhankelijk van de racepositie. Vanaf trainingspositie 3 zijn
+het leider, direct snellere, gevolgde piloot en direct langzamere. Bij P1/P2
+worden de eerste drie unieke piloten getoond. Een kleiner veld of ontbreken
+van een langzamere piloot geeft alleen de beschikbare rijen. Zonder rondetijd
+krijgt de gevolgde piloot P— en wordt geen trainingspositie verzonnen.
+
+Kolommen: laatste S1/S2/S3 waar gepubliceerd, laatste ronde en beste ronde.
+De gevolgde rij heeft een groene achtergrond. Kleine deltas bij andere rijen
+zijn eigen laatste tijd min hun laatste tijd; de passages kunnen uit
+verschillende rondes komen. De extra paarse **Ideaal**-rij toont sessierecords
+per sector, hun recordhouders en de som als ideale rondetijd. Ontbreekt één
+gepubliceerde sector, dan blijft de ideale ronde —; de snelste werkelijk
+gereden ronde wordt niet als sectorsom gebruikt.
+
+Per tijd toont Nieuw/Vorige/Bron de passagezekerheid. De recentste waargenomen
+ronde wordt afgeleid uit bestaande sector_seen/observed-parsermetadata en de
+opgeslagen feedback van de gevolgde piloot. Na S1 van ronde 5 blijven S2 en de
+laatste ronde bijvoorbeeld herkenbaar als ronde 4. R staat voor een officiële
+ronde, # voor een waargenomen passage. Reconnectsnapshots die voorlopen op de
+laatst waargenomen passage krijgen Bron in plaats van een verzonnen Nieuw.
+Er is geen fysieke trackpositie of continue voortgangsbalk verzonnen. Dezelfde
+markeringen staan ook op de grote pilootkaart. Op mobiel staan alle tijdvelden
+onder de pilootnaam, zonder horizontale pagina-overflow.
+
+Release `/home/ubuntu/livecoach-build-20261118-training-rows`, webimage
+`yanoa-racing-live:20261118-training-rows`, digest
+`sha256:f45af57f6f77ad88d54420b987f19baf36e7a9ee050726df0cf323a8754b1ec1`.
+Geen nieuwe migratie of workerherstart; kartverslagen en referenties blijven
+bewaard. 93 Django-tests geslaagd op SQLite. Nieuwe regressies dekken P1/P2,
+vier rijen, klein veld/laatste plaats, incomplete sectorrecords, ideale som en
+nieuwe/oude passages, inclusief reconnect. Vier trainingsbrowserprofielen
+(desktop/mobiel, normaal/traag) controleren P4 met vier piloten plus ideale rij,
+Nieuw R5 tegenover Vorige R4, scores en heropenen; FCP 64–700 ms. Screenshots
+visueel gecontroleerd. Gedeelde laadchecker vóór en na publicatie uitgevoerd.
+Rollback webimage: `yanoa-racing-live:20261118-training`.
+
+
+## Training, sessiekeuze en kartverslagen (18 november 2026)
+
+`/live/` is nu een direct zichtbare HTML-keuze met drie grote knoppen:
+Training (`/live/training/`), Sprintrace (`/live/sprint/`) en Endurance
+(`/live/endurance/`). Sprint behoudt de bestaande racebediening. Endurance
+gebruikt voor deze eerste stap dezelfde race-/pitbediening met een eigen
+sessietype. De bestaande trackmodus live/replay staat los van het sessietype.
+Migratie 0016 voegt FollowSession.activity toe met Python- én DB-default sprint,
+zodat bestaande sessies/oudere workers compatibel blijven.
+
+Training volgt één piloot met APEX. De bronkeuze biedt ook Geen timingstream en
+Ander timingprogramma; die zijn zichtbaar als toekomstige aansluitingen en
+starten geen fictieve live sessie. Training opent een schermvullende focus met
+huidige kart, sector-/rondetijd, eigen delta en beste tijd. Native fullscreen
+heeft een CSS-viewportfallback, altijd met een zichtbare sluitknop. Bronklok en
+sessietitel blijven zichtbaar. Recente pace is de mediaan van maximaal drie
+schone ronden met de huidige kart. Snellere/langzamere vergelijkingspiloten
+worden op beste rondetijd gekozen, nooit op racepositie. De tabel vergelijkt
+eigen beste sector-/rondetijden met die twee piloten en met de snelste bekende
+tijd per metric (inclusief recordhouder). Ontbrekende data blijft —. Details
+staan achter ⓘ; een verdwenen geselecteerde piloot krijgt geen vergelijking
+met rijders uit een andere baansessie.
+
+De bevestigde karttemplate gebruikt 1–5 voor acceleratie, topsnelheid, remmen,
+voorgrip, achtergrip en balans; niet beoordeelde elementen blijven leeg.
+Minstens één score is verplicht. Baanconditie: droog/vochtig/nat, plus notities.
+De kartkeuze bevat huidige en tijdens de opvolging gebruikte karts. Het verslag
+bewaart eigenaar, piloot, circuit, kart, tijdstip, sessienaam, templateversie en
+schone opgenomen besttijden van uitsluitend die kart. KartReport staat los van
+FollowDriver en heeft een nullable SET_NULL-sessieverwijzing: verwijderen van
+volgsessie of piloot verwijdert expliciet bewaarde kartverslagen niet. Reports
+zijn immutable, UUID-idempotent en alleen voor de ingelogde eigenaar zichtbaar.
+Replay vraagt expliciet om een echt circuit om verslagen niet aan een
+simulatietrack te koppelen. Sprint/Endurance hebben **Kartverslagen**, zoekbaar
+op circuit en kartnummer. Het formuliersnapshot blijft stabiel tijdens SSE-updates.
+
+Release `/home/ubuntu/livecoach-build-20261118-training`, webimage
+`yanoa-racing-live:20261118-training`, digest
+`sha256:6815ec6909dbc110c848ab84b6f1a5e9c3de8267adec9e577cfd32bbd045acc9`.
+87 Django-tests geslaagd op SQLite én een wegwerp-PostgreSQL, inclusief
+privacy/validatie/idempotentie, kartwissel, behoud na verwijderen en vergelijking
+los van positie. Vier trainingsbrowserprofielen en vier bestaande sprintprofielen
+(desktop/mobiel, normaal/traag) slagen. Training FCP 52–668 ms; fullscreenpositie,
+timer, scores opslaan, terugvinden bij Sprint en sessie heropenen zijn getest.
+Gedeelde laadchecker vóór en na publicatie. Backup vóór migratie:
+`racing-before-training.dump` (0600). Rollback webtag:
+`yanoa-racing-live:before-training-20261118`; laat de additieve migratie bestaan.
+Timing-/simulatieworkers en hun opnames worden niet herstart of gereset.
+
+
 ## Agadir en circuitkeuze zonder simulaties (15 november 2026)
 
 Maroc Racing Kart Agadir is toegevoegd aan Python- en Node-bronregisters met
@@ -652,3 +894,20 @@ nodig voor deze rollback.
   geslaagd, FCP 208–524 ms. De publiek aangeboden JS is bytegelijk aan de geteste
   bron. Alle vier nieuwe services zijn healthy; de oude Racing-container en
   oorspronkelijke Goodwill-recorder bleven draaien.
+
+
+## Simulator: 10 seconden terug
+
+De simulatiebediening bevat **10 seconden terug**. Dit gaat om10seconden in de opname, onafhankelijk van de afspeelsnelheid, met begrenzing op0. Vanuit pauze blijft de simulator gepauzeerd; tijdens afspelen blijft hij nadien afspelen op dezelfde snelheid; na afloop spoelt hij terug en pauzeert. Gestopte/foute/opnieuw opbouwende simulaties kunnen niet opnieuw terugspoelen; de limiet van3actieve simulaties blijft gelden.
+
+De owner/CSRF-beveiligde bestaande action-route accepteert `action=rewind`. Ze zet state `rewinding`, verhoogt run/dedup- en referentieblok, herstelt de oorspronkelijke parsercheckpoint en zet de private worker aan het werk. De worker herleest begrensde batches van250opname-events via dezelfde ingest als live/replay, inclusief oorspronkelijke timestamps, tot het gevraagde punt. Navigatie blijft beschikbaar met status Terugspoelen · timing herstellen. Stop en Opnieuw beginnen blijven mogelijk tijdens de opbouw. Bij langere opnames kan reconstrueren even duren.
+
+Toewijzingen, geselecteerde piloten, sessie-ID en snelheid blijven behouden. Pitstatus, sectoren, kart, referenties en finish worden van de herstelde tijdlijn afgeleid. De kaart krijgt tijdelijk ongeldig `replay_rewinding` in plaats van een half opgebouwd timingbeeld. Oudere feedback blijft als audit in de database/export bestaan; de zichtbare geschiedenis/kartlijst verbergt feedback van de eerdere toekomstige tijdlijn vanaf de nieuwe rewind-reset.
+
+Webrelease `yanoa-racing-live:20261121-rewind-web` en aparte simulatorworker `...rewind-worker`. `compose.live-web.yml` bevat een onafhankelijke `LIVECOACH_SIM_IMAGE`-override; `LIVECOACH_IMAGE` en actieve live timingworkers zijn niet gewijzigd. Geen schemawijziging. Rollback herstelt zowel private envbackup als composeoverride uit de releasefolder.
+
+Verificatie: volledige Django-suite148tests (147geslaagd,1optionele skip), daarna15gerichte simulatietests geslaagd inclusief actieve-limiet. Vier lokale interactieve browsercases desktop/mobiel normaal/traag geslaagd: spelen/pauze/finish terugspoelen, clamp0, snelheid en referenties. FCP28–728ms. Productiecontrole uitsluitend GET/HEAD, geen test-rewind op gebruikerssessies.
+
+De uiteindelijke images zijn `20261121-rewind-web-v2` / `20261121-rewind-worker-v2`: afspelen wordt pas verankerd wanneer de reconstructie klaar is, zodat verwerkingstijd niet als extra afspeeltijd telt (ook bij2×/20×). Dit is apart getest met een gesimuleerde verwerkingstijd van3seconden. De simulatietestmodule bevat nu16geslaagde tests.
+
+Eindcontrole: web en simulator healthy op de-v2-images; live timingworkers blijven op hun vorige pit-focus-image. Vier verse productie-browsers desktop/mobiel normaal/traag bevestigen de knop bij de bestaande actuele trainingssessie, FCP244–524ms,0schrijfverzoeken. Gedeelde checker vóór/na geslaagd (final desktop308/408ms, mobiel312/412ms). Tijdelijke leessessie verwijderd, lokale preview gestopt. Bestaande sessie, opdracht en opnamepositie zijn niet door tests bediend.

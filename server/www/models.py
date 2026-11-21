@@ -111,4 +111,6 @@ class Trophy(models.Model):
 
     def __str__(self):
         return self.year
-from .live_models import TimingTrack, FollowSession, FollowDriver, CoachEvent, CoachAction, TimingPacket, TimingConnection, TimingRecording, TimingSimulation
+from .live_models import TimingTrack, FollowSession, FollowDriver, CoachEvent, CoachAction, TimingPacket, TimingConnection, TimingRecording, TimingSimulation, KartReport
+
+from .telemetry_models import TelemetryDevice

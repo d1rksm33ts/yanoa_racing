@@ -109,19 +109,22 @@ def target_position(sim, now):
 
 @transaction.atomic
 def tick(sim_id, now=None):
+    explicit_now = now is not None
     now = now or timezone.now()
     sim = TimingSimulation.objects.select_for_update(of=("self",)).select_related("recording").get(pk=sim_id)
-    if sim.state not in {"paused", "playing"}:
+    if sim.state not in {"paused", "playing", "rewinding"}:
         return
     TimingTrack.objects.filter(pk=sim.track_id).update(worker_at=now)
-    if sim.state != "playing":
+    rebuilding = sim.state == "rewinding"
+    if sim.state != "playing" and not rebuilding:
         return
     segment = sim.recording.segments[sim.segment]
     target = target_position(sim, now)
     done = False
+    caught_up = False
     with recording_path(sim.recording).open("rb") as source:
         source.seek(sim.byte_offset)
-        for _ in range(100):
+        for _ in range(250 if rebuilding else 100):
             begin = source.tell()
             if begin >= segment["endByte"]:
                 done = True
@@ -133,6 +136,7 @@ def tick(sim_id, now=None):
             event = json.loads(line)
             position = max(0, event["offsetMs"] - segment["startMs"])
             if position > target:
+                caught_up = True
                 break
             sim.byte_offset = source.tell()
             event["originalReceivedAt"] = event["receivedAt"]
@@ -142,17 +146,48 @@ def tick(sim_id, now=None):
         if sim.byte_offset >= segment["endByte"]:
             done = True
     sim.position_ms = target
-    if done and target >= max(0, segment["endMs"] - segment["startMs"]):
+    if rebuilding and (caught_up or done):
+        sim.state = "playing" if sim.anchor_at else "paused"
+        sim.anchor_ms = target
+        sim.anchor_at = (now if explicit_now else timezone.now()) if sim.anchor_at else None
+    if not rebuilding and done and target >= max(0, segment["endMs"] - segment["startMs"]):
         sim.state = "finished"
         TimingTrack.objects.filter(pk=sim.track_id).update(connection="finished")
-    sim.save(update_fields=["byte_offset", "position_ms", "state"])
+    sim.save(update_fields=["byte_offset", "position_ms", "state", "anchor_ms", "anchor_at"])
 
 
 @transaction.atomic
 def control(sim_id, owner, action, speed=None):
     sim = TimingSimulation.objects.select_for_update(of=("self",)).select_related("recording").get(pk=sim_id, owner=owner)
     now = timezone.now()
-    if action == "restart":
+    if action == "rewind":
+        if sim.state not in {"paused", "playing", "finished"}:
+            raise ValueError("Deze simulatie kan nu niet teruggespoeld worden.")
+        if sim.state == "finished" and TimingSimulation.objects.filter(owner=owner).exclude(pk=sim.pk).exclude(state__in=["stopped", "finished", "error"]).count() >= 3:
+            raise SimulationLimitError("Je hebt drie actieve simulaties. Stop eerst een andere simulatie.")
+        was_playing = sim.state == "playing"
+        current = sim.position_ms if sim.state == "finished" else target_position(sim, now)
+        target = max(0, current - 10000)
+        segment = sim.recording.segments[sim.segment]
+        sim.run += 1
+        sim.byte_offset = segment["byteOffset"]
+        sim.position_ms = sim.anchor_ms = target
+        # During rebuild anchor_at records whether playback should resume.
+        sim.anchor_at = now if was_playing else None
+        sim.state, sim.error = "rewinding", ""
+        TimingTrack.objects.filter(pk=sim.track_id).update(parser_state=copy.deepcopy(segment["state"]),
+            entrants=segment["drivers"], connection="connected", worker_at=now,
+            packet_at=None, timing_at=None, error="")
+        initial_karts = {entrant["identity"]: entrant["kart"] for entrant in segment["drivers"]}
+        for session in FollowSession.objects.select_for_update().filter(track_id=sim.track_id, state="active"):
+            for driver in session.drivers.select_for_update():
+                driver.block += 1
+                driver.best, driver.last = {}, {}
+                driver.kart = initial_karts.get(driver.identity, driver.kart)
+                driver.save(update_fields=["block", "best", "last", "kart"])
+            publish(session, "reset", {"rewind": True, "positionMs": target,
+                "message": "10 seconden teruggespoeld; timing en referenties worden hersteld."})
+    elif action == "restart":
         segment = sim.recording.segments[sim.segment]
         sim.run += 1
         sim.byte_offset, sim.position_ms, sim.anchor_ms = segment["byteOffset"], 0, 0
@@ -168,7 +203,7 @@ def control(sim_id, owner, action, speed=None):
                 driver.save(update_fields=["block", "best", "last", "kart"])
             publish(session, "reset", {"message": "Simulatie herstart; nieuwe referenties, eerdere feedback bewaard."})
     elif action in {"play", "pause", "speed", "stop"}:
-        if sim.state not in {"paused", "playing"}:
+        if sim.state not in {"paused", "playing"} and not (action == "stop" and sim.state == "rewinding"):
             raise ValueError("Herstart de afgelopen simulatie om opnieuw af te spelen.")
         # Drain all due events before changing the clock, so pause is an exact boundary.
         if sim.state == "playing":

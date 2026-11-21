@@ -52,7 +52,7 @@ try:
                     page = context.new_page()
                     errors=[]
                     page.on("pageerror",lambda error:errors.append(str(error)))
-                    page.goto(BASE+'/live/login/?next=/live/')
+                    page.goto(BASE+'/live/login/?next=/live/sprint/')
                     page.get_by_label("Gebruikersnaam").fill(user.username)
                     page.get_by_label("Wachtwoord").fill(password)
                     page.get_by_role('button',name='Aanmelden',exact=True).click()

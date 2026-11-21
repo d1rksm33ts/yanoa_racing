@@ -2,10 +2,20 @@ from django.contrib.auth import views as auth_views
 from django.urls import path
 from . import views
 from . import live_views
+from . import telemetry_views
 
 app_name = "www"
 urlpatterns = [
+    path("live/api/devices/", telemetry_views.devices, name="telemetry-devices"),
+    path("live/api/devices/<slug:device_id>/assign/", telemetry_views.assign, name="telemetry-assign"),
+    path("live/api/devices/<slug:device_id>/telemetry/", telemetry_views.ingest, name="telemetry-ingest"),
+    path("live/api/devices/<slug:device_id>/", telemetry_views.detail, name="telemetry-detail"),
     path("live/", live_views.page, name="livecoach"),
+    path("live/sprint/", live_views.page, {"activity": "sprint"}, name="livecoach-sprint"),
+    path("live/training/", live_views.page, {"activity": "training"}, name="livecoach-training"),
+    path("live/endurance/", live_views.page, {"activity": "endurance"}, name="livecoach-endurance"),
+    path("live/api/kart-reports/", live_views.kart_reports, name="livecoach-kart-reports"),
+    path("live/api/sessions/<uuid:pk>/kart-reports/", live_views.save_kart_report, name="livecoach-save-kart-report"),
     path("live/login/", auth_views.LoginView.as_view(template_name="livecoach/login.html", redirect_authenticated_user=True), name="livecoach-login"),
     path("live/samenvattingen/", live_views.summary, name="livecoach-summary"),
     path("live/api/", live_views.overview, name="livecoach-overview"),

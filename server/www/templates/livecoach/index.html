@@ -4,12 +4,13 @@
   <meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#151619">
   <title>Live Coach | YaNoa Racing</title>
   <style>body{margin:0;background:#101114;color:#f5f5f5;font:16px system-ui,sans-serif}header,main{padding:24px;max-width:1160px;margin:auto}a{color:inherit}h1{margin:12px 0}button,input,select{font:inherit}noscript{display:block;padding:24px}</style>
-  <link rel="stylesheet" href="{% static 'yanoa_racing/assets/css/livecoach.css' %}?v=20261114-pace">
-  <script src="{% static 'yanoa_racing/assets/js/livecoach.js' %}?v=20261114-pace" defer></script>
-</head><body>
-<header class="topbar"><a href="{% url 'www:index' %}" class="brand">YaNoa<span>RACING</span></a><nav><a href="{% url 'www:manage' %}">Beheer</a><span class="account">{{ request.user.get_username }}</span></nav></header>
+  <link rel="stylesheet" href="{% static 'yanoa_racing/assets/css/livecoach.css' %}?v=20261120-potential">
+  <script src="{% static 'yanoa_racing/assets/js/livecoach.js' %}?v=20261121-rewind" defer></script>
+  <script src="{% static 'yanoa_racing/assets/js/livecoach-training.js' %}?v=20261120-potential" defer></script>
+</head><body data-coach-mode="{{ coach_mode|default:'sprint' }}">
+<header class="topbar"><a href="{% url 'www:index' %}" class="brand">YaNoa<span>RACING</span></a><nav><a href="{% url 'www:livecoach' %}">Sessiekeuze</a><a href="{% url 'www:manage' %}">Beheer</a><span class="account">{{ request.user.get_username }}</span></nav></header>
 <main>
-  <section class="intro"><div><p class="eyebrow"><span class="dot"></span> TIMING · FEEDBACK · REPLAY</p><h1>Live Coach<span>.</span></h1></div></section>
+  <section class="intro"><div><p class="eyebrow"><span class="dot"></span> TIMING · FEEDBACK · REPLAY</p><h1>{% if coach_mode == "training" %}Training{% elif coach_mode == "endurance" %}Endurance{% else %}Sprint{% endif %}<span>.</span></h1></div></section>
   <div id="error" class="error" role="alert" hidden></div>
   <section id="active-sessions-panel" class="panel active-sessions-panel" hidden><details id="active-sessions-details" open><summary><strong>Actieve volgsessies</strong> <span id="active-session-count"></span></summary><div id="active-sessions" class="active-session-list"></div></details></section>
   <noscript>Live feedback vereist JavaScript. Opnames blijven op de server lopen. Je kunt je <a href="{% url 'www:livecoach-summary' %}">bewaarde sessies en tijden bekijken</a>.</noscript>
@@ -23,6 +24,7 @@
         <div id="active-simulations"></div>
         <details class="info"><summary aria-label="Uitleg simulatie">ⓘ</summary><div class="info-content">Laad een sessie, kies piloten en start volgen. Daarna kun je afspelen. Stop een actieve simulatie om plaats vrij te maken.</div></details>
       </details>
+      {% if coach_mode == "training" %}<label for="training-provider">Timingbron</label><select id="training-provider"><option value="apex">APEX Timing</option><option value="manual">Geen timingstream</option><option value="other">Ander timingprogramma</option></select><p id="provider-note" class="small muted" hidden>Deze bron wordt later toegevoegd. Kies APEX voor live training.</p>{% endif %}
       <label for="track">Circuit</label><select id="track"><option value="">Banen laden…</option></select>
       <button type="button" id="connect" class="button secondary">Verbinden</button>
       <p id="source-status" class="source-status" role="status">Verbinding met de server maken…</p>
@@ -30,6 +32,7 @@
       <div class="pilot-heading"><h3>Piloten</h3><span id="pilot-count" class="muted small">0 gekozen</span></div>
       
       <div id="pilots" class="pilots"><p class="muted">Wachten op de deelnemerslijst.</p></div>
+      {% include 'livecoach/devices_panel.html' %}
       <form id="start-form">{% csrf_token %}<label for="session-name">Sessienaam</label><input id="session-name" maxlength="120" placeholder="Bijv. Noah · Pro training"><button id="start" class="button primary" disabled>Start volgsessie <span>↗</span></button><button id="update-pilots" type="button" class="button primary" hidden>Update piloten</button></form>
       <p id="selection-status" class="muted small" role="status"></p>
       <details class="info"><summary aria-label="Uitleg opvolging">ⓘ</summary><div class="info-content">Tijden worden op de server bewaard. Maximaal 12 piloten. Update piloten behoudt de referenties van de overblijvende selectie. Communiceer alleen wanneer dit is toegestaan.</div></details>
@@ -40,10 +43,12 @@
         <div class="section-label">SIMULATIE · OPGENOMEN TIMING</div><h3 id="simulation-title"></h3>
         <p id="simulation-status" role="status" class="muted small"></p>
         <progress id="simulation-progress" max="1" value="0" aria-label="Voortgang simulatie"></progress>
-        <div class="controls"><button type="button" id="sim-play" class="button">Afspelen</button><button type="button" id="sim-pause" class="button secondary">Pauzeren</button><button type="button" id="sim-restart" class="button secondary">Opnieuw beginnen</button><button type="button" id="sim-stop" class="button secondary">Stop simulatie</button></div>
+        <div class="controls"><button type="button" id="sim-play" class="button">Afspelen</button><button type="button" id="sim-pause" class="button secondary">Pauzeren</button><button type="button" id="sim-rewind" class="button secondary">10 seconden terug</button><button type="button" id="sim-restart" class="button secondary">Opnieuw beginnen</button><button type="button" id="sim-stop" class="button secondary">Stop simulatie</button></div>
         <label for="sim-speed" class="small muted">Afspeelsnelheid</label><select id="sim-speed"><option value="0.25">0,25×</option><option value="0.5">0,5×</option><option value="1" selected>1× · werkelijke snelheid</option><option value="2">2×</option><option value="5">5×</option><option value="10">10×</option><option value="20">20×</option></select>
       </div>
       <div class="panel session-bar"><div><div class="section-label">02 / LIVE FEEDBACK</div><h2 id="active-name">Klaar voor de start</h2><p id="live-status" class="muted small" role="status">Kies baan en piloten.</p></div><span id="session-badge" class="badge">STAND-BY</span></div>
+      <div class="controls coach-extra-controls"><button id="training-fullscreen" type="button" class="button" hidden>Fullscreen training</button><button id="open-kart-library" type="button" class="button secondary">Kartverslagen</button></div>
+
       <div id="session-controls" class="controls" hidden><button id="stop" class="button">Stop & bewaar</button><button id="discard" class="button danger">Stop zonder bewaren</button><button id="reset" class="button secondary">Reset referenties</button><button id="rename" class="button secondary">Naam opslaan</button><a id="export" class="button secondary" href="#">Export</a></div>
       <details id="pit-settings-panel" class="panel pit-settings" hidden><summary>Pitinstellingen</summary><form id="pit-settings-form">
         <label for="pit-duration">Pitduur (s)</label><input id="pit-duration" type="number" min="0" max="1800" step="0.1" required>
@@ -53,6 +58,7 @@
         <button id="pit-settings-save" class="button secondary">Pitinstellingen opslaan</button>
       </form></details>
       <section id="race-clock-panel" class="panel race-clock-panel" hidden><div><div class="section-label">BAANSESSIE</div><h2 id="race-title">—</h2></div><div class="race-clock"><span id="race-clock-label">Resterend</span><strong id="race-clock" role="timer">—</strong></div></section>
+      <section id="training-dashboard" hidden aria-label="Trainingsoverzicht"><div id="training-live"></div><section class="panel training-comparison"><h2>Tempovergelijking</h2><div id="training-comparison"></div><details class="info"><summary aria-label="Uitleg trainingsvergelijking">ⓘ</summary><div class="info-content">Posities volgen de beste rondetijd, niet de racepositie. De rijen tonen de laatste sectoren en ronde, plus de beste ronde. Alle tijden van de laatst voltooide ronde blijven gekleurd tot de eerste sector van de volgende ronde. Daarna kleuren de sectoren weer mee zodra ze vernieuwd zijn; de overige tijdvelden blijven grijs. Kleuren worden bij elk nieuw sessierecord opnieuw berekend. De sectorlijn volgt de tijdkleur; de rijbalk volgt de laatste ronde. Δ eigen vergelijkt de passage met de eigen beste tijd vóór die passage. Bij een oudere bronwaarde zonder passagehistoriek wordt het verschil met de bekende eigen beste gebruikt. Δ ideaal vergelijkt de gevolgde piloot met het sectorrecord of de ideale sectorsom. Ideaal telt alle snelste beschikbare sectoren op en is geen gereden ronde. Pace is de mediaan van maximaal drie recente schone ronden met de huidige kart.</div></details></section><button id="new-kart-report" type="button" class="button">Kart beoordelen</button></section>
       <details id="race-comments-panel" class="panel race-comments-panel" hidden><summary>Commentaar &amp; penalties <span id="race-comment-count" class="muted"></span></summary><ol id="race-comments"></ol></details>
       <section id="session-record-panel" class="panel session-record-panel" hidden><h2>Sessiebeste</h2><div id="session-records" class="session-records"></div></section>
       <div id="driver-cards" class="driver-cards"><div class="panel empty-state"><span class="empty-number">±0.000s</span><h3>Kies je piloten</h3><div class="legend"><span class="faster">−0.949s <small>sneller</small></span><span class="slower">+0.102s <small>trager</small></span></div></div></div>
@@ -62,5 +68,8 @@
     </section>
   </div>
   <section class="archive"><div class="section-label">03 / BEWAARDE SESSIES</div><h2>Terug naar de baan.</h2><div id="sessions" class="saved-sessions"><p class="muted">Sessies laden…</p></div></section>
-</main><footer>YaNoa Racing · Live Coach <span>Server-side timing. Direct inzicht.</span></footer>
+</main>
+<dialog id="kart-dialog"><form id="kart-report-form"><div class="dialog-heading"><h2>Kart beoordelen</h2><button type="button" class="button secondary close-dialog" aria-label="Sluiten">✕</button></div><p id="report-pilot" class="muted small"></p><label for="report-circuit">Circuit</label><select id="report-circuit" required></select><label for="report-kart">Kart</label><select id="report-kart" required></select><label for="report-conditions">Baanconditie</label><select id="report-conditions"><option value="dry">Droog</option><option value="damp">Vochtig</option><option value="wet">Nat</option></select><p class="small muted">1 = zwak · 5 = uitstekend · leeg = niet beoordeeld</p><div id="report-scores" class="report-scores"></div><label for="report-notes">Notities</label><textarea id="report-notes" rows="4" maxlength="2000"></textarea><p id="report-status" role="status"></p><button id="save-kart-report" class="button primary">Verslag bewaren</button></form></dialog>
+<dialog id="kart-library"><div class="dialog-heading"><h2>Kartverslagen</h2><button type="button" class="button secondary close-dialog" aria-label="Sluiten">✕</button></div><label for="library-circuit">Circuit</label><select id="library-circuit"></select><label for="library-kart">Kartnummer</label><input id="library-kart" maxlength="30" placeholder="Alle karts"><button id="find-kart-reports" class="button secondary">Zoeken</button><div id="kart-report-list" aria-live="polite"></div></dialog>
+<footer>YaNoa Racing · Live Coach <span>Server-side timing. Direct inzicht.</span></footer>
 </body></html>

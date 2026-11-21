@@ -10,13 +10,14 @@ from www.live_simulation import recording_path
 from www.live_service import publish
 
 ROOT_FIELDS=('race_deadline_ms','race_remaining_laps','clockMs','session_best_times')
-ROW_FIELDS=('sector_bests','observed_best_lap','lap_crossings','last_pit_ms','last_pit_exit_ms','pit_sample_pending','pit_dirty','pit_samples','pit_pace_ms','completed_pits','in_pit')
+ROW_FIELDS=('sector_bests','observed_best_lap','lap_crossings','last_pit_ms','last_pit_exit_ms','pit_sample_pending','pit_dirty','pit_samples','pit_pace_ms','completed_pits','in_pit','training_times','training_latest_metric')
 
 class Command(BaseCommand):
     help='Refresh derived replay timing fields only, preserving driver IDs and reference blocks.'
     def add_arguments(self, parser):
         parser.add_argument('--owner-id',type=int,required=True)
         parser.add_argument('--auto-pit-session')
+        parser.add_argument('--training-only',action='store_true')
         parser.add_argument('--backup',default='/tmp/pace-checkpoints-before.json')
     @transaction.atomic
     def handle(self,*args,**options):
@@ -37,14 +38,14 @@ class Command(BaseCommand):
             backups.append({'trackId':track.pk,'parserState':original})
             backup=Path(options['backup']);backup.write_text(json.dumps(backups));backup.chmod(0o600)
             # Preserve legacy identities/run IDs even if old parsing generated them differently.
-            for key in ROOT_FIELDS:
+            for key in (() if options.get("training_only") else ROOT_FIELDS):
                 if key in adapter.state:track.parser_state[key]=adapter.state[key]
             old_adapter=ApexAdapter(track.parser_state)
             for rid,row in track.parser_state.get('rows',{}).items():
                 fresh=adapter.state['rows'].get(rid)
                 if fresh is None or old_adapter.field(row,'dr')!=adapter.field(fresh,'dr') or old_adapter.field(row,'no')!=adapter.field(fresh,'no'):
                     continue
-                for key in ROW_FIELDS:
+                for key in (("training_times", "training_latest_metric") if options.get("training_only") else ROW_FIELDS):
                     if key in fresh:row[key]=copy.deepcopy(fresh[key])
                     else:row.pop(key,None)
             track.save(update_fields=['parser_state'])
